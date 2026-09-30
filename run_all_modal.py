@@ -53,7 +53,7 @@ def render(meshcase: int, matcase: int, name: str) -> Path:
         if text.count(old) != 1:
             raise RuntimeError(f"Template marker not found exactly once: {old!r}")
         text = text.replace(old, new)
-    assert "MODOPT,LANB,12" in text and "MXPAND,12,,,NO" in text
+    assert "MODOPT,LANB,12" in text and "LANBOPTION,,,,OUTOFCORE" in text and "MXPAND,12,,,NO" in text
     path = RUNS / f"{name}.inp"
     try:
         if path.is_file() and path.read_text(encoding="ascii") == text:

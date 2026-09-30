@@ -59,7 +59,9 @@ ANTYPE,MODAL
 PSTRES,OFF
 LUMPM,OFF
 ! Block Lanczos is robust for the six zero-energy rigid-body modes.
+! Keep both sparse-solver data and Lanczos work arrays on disk for 32 GB workstations.
 MODOPT,LANB,12
+LANBOPTION,,,,OUTOFCORE
 MXPAND,12,,,NO
 OUTRES,ALL,NONE
 OUTRES,NSOL,ALL
