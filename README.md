@@ -9,7 +9,7 @@ OBJ는 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압축해 두�
 - `modal_cantilever3.obj.zip`
 - `uniform_cantilever3.obj.zip`
 
-private 저장소이므로 워크스테이션에서 한 번 `gh auth login`이 필요합니다. `uniform_cantilever3.obj`는 부피 보정 3MF로 만든 최신 파일이며 실체 부피는 약 `86,687 mm³`입니다. `modal_cantilever3.obj`는 반지름 최종 보정 전 파일이므로 최신 modal 해석 전 `geometry/modal_cantilever3_corrected.3mf`에서 다시 변환해야 합니다.
+private 저장소이므로 워크스테이션에서 한 번 `gh auth login`이 필요합니다. 최신 `modal_cantilever3.obj`의 실체 부피는 약 `83,320 mm³`입니다. 이에 맞춰 uniform 3MF의 공통 반지름을 `0.806104 mm`로 다시 보정했으며, `geometry/uniform_cantilever3_volume_matched.3mf`에서 uniform OBJ를 다시 변환해야 합니다.
 
 ## 실행
 
