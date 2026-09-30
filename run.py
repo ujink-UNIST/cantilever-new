@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import shutil
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -26,15 +26,14 @@ def ensure_obj(case: str) -> Path:
         return source
     archive = ROOT / f"{source.name}.zip"
     if not archive.is_file():
-        gh = shutil.which("gh")
-        if not gh:
-            raise SystemExit("Missing OBJ and GitHub CLI. Install gh, run 'gh auth login', then retry.")
-        execute(
-            gh, "release", "download", "v1.0",
-            "--repo", "ujink-UNIST/cantilever-new",
-            "--pattern", archive.name,
-            "--dir", str(ROOT),
-        )
+        url = f"https://github.com/ujink-UNIST/cantilever-new/releases/download/v1.0/{archive.name}"
+        print(f"Downloading {archive.name} ...", flush=True)
+        partial = archive.with_suffix(archive.suffix + ".part")
+        try:
+            urllib.request.urlretrieve(url, partial)
+            partial.replace(archive)
+        finally:
+            partial.unlink(missing_ok=True)
     with ZipFile(archive) as zipped:
         if zipped.namelist() != [source.name]:
             raise RuntimeError(f"Unexpected contents in {archive.name}")
