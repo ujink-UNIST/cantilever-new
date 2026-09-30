@@ -27,5 +27,6 @@ runs/*
 
 # Local release archives and Python cache
 release/
+.tools/
 __pycache__/
 *.py[cod]
