@@ -9,7 +9,7 @@ GitHub Release의 다음 파일을 내려받아 프로젝트 루트에 압축 �
 - `modal_cantilever3.obj.zip`
 - `uniform_cantilever3.obj.zip`
 
-보정된 원본 3MF는 `geometry/`에 있습니다. OBJ는 GitHub의 파일 크기 제한 때문에 저장소가 아닌 Release asset으로 배포합니다.
+보정된 최신 원본 3MF는 `geometry/`에 있습니다. Release의 OBJ는 현재 폴더에 있던 보정 전 변환본이므로, 최신 반지름을 해석하려면 `geometry/`의 3MF를 OBJ로 다시 변환해 교체해야 합니다. OBJ는 GitHub의 파일 크기 제한 때문에 저장소가 아닌 Release asset으로 배포합니다.
 
 ## 실행
 
