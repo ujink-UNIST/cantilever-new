@@ -58,10 +58,11 @@ FINISH
 ANTYPE,MODAL
 PSTRES,OFF
 LUMPM,OFF
-! Block Lanczos is robust for the six zero-energy rigid-body modes.
-! Keep both sparse-solver data and Lanczos work arrays on disk for 32 GB workstations.
-MODOPT,LANB,12
-LANBOPTION,,,,OUTOFCORE
+! PCG Lanczos detects rigid-body modes and avoids the sparse factorization's 38 GB peak.
+! Element-by-element SOLID187 assembly can save up to 70% memory.
+MODOPT,LANPCG,12
+PCGOPT,1,OFF,NO,OFF,OFF
+MSAVE,ON
 MXPAND,12,,,NO
 OUTRES,ALL,NONE
 OUTRES,NSOL,ALL
