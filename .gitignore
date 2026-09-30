@@ -1,0 +1,31 @@
+# Large/generated geometry and solver files
+*.obj
+*.msh
+*.cdb
+*.out
+*.rst
+*.mode
+*.full
+*.emat
+*.esav
+*.db
+*.rdb
+*.tri
+*.mntr
+*.mlv
+*.PCG
+*.PCS
+*.sscr
+*.page
+*.stat
+*.bat
+*.lock
+*.parm
+*_frequencies.csv
+runs/*
+!runs/.gitkeep
+
+# Local release archives and Python cache
+release/
+__pycache__/
+*.py[cod]

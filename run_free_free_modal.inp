@@ -1,0 +1,82 @@
+! TET10 unconstrained free-free modal analysis (mm, N, s, MPa)
+! MESHCASE: 1=modal_cantilever3, 2=uniform_cantilever3
+! MATCASE : 101=Inconel 718, 102=Structural Steel, 103=Formlabs Nylon 12 (SLS)
+! Modes 1-6 are rigid-body modes; modes 7-12 are elastic f1-f6.
+
+FINISH
+/CLEAR,NOSTART
+/FILNAME,free_free_modal,1
+MESHCASE=1
+MATCASE=101
+
+/NOPR
+*IF,MESHCASE,EQ,1,THEN
+  /INPUT,../modal_cantilever3_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,2,THEN
+  /INPUT,../uniform_cantilever3_ansys_tet10,cdb
+*ELSE
+  /GOPR
+  /COM,ERROR: MESHCASE must be 1 or 2.
+  /EXIT,NOSAVE
+*ENDIF
+/GOPR
+
+/PREP7
+/UNITS,MPA
+ALLSEL,ALL
+
+! Room-temperature linear isotropic properties.
+! Density unit is tonne/mm^3 in the MPA unit system.
+MP,EX,101,165000
+MP,NUXY,101,0.300
+MP,DENS,101,8.220E-9
+
+MP,EX,102,200000
+MP,NUXY,102,0.300
+MP,DENS,102,7.850E-9
+
+MP,EX,103,1850
+MP,NUXY,103,0.390
+MP,DENS,103,9.900E-10
+
+*IF,MATCASE,LT,101,THEN
+  /COM,ERROR: MATCASE must be 101, 102, or 103.
+  /EXIT,NOSAVE
+*ENDIF
+*IF,MATCASE,GT,103,THEN
+  /COM,ERROR: MATCASE must be 101, 102, or 103.
+  /EXIT,NOSAVE
+*ENDIF
+EMODIF,ALL,MAT,MATCASE
+
+! True free-free model: no displacement constraints.
+ALLSEL,ALL
+DDELE,ALL,ALL
+FINISH
+
+/SOLU
+ANTYPE,MODAL
+PSTRES,OFF
+LUMPM,OFF
+! Block Lanczos is robust for the six zero-energy rigid-body modes.
+MODOPT,LANB,12
+MXPAND,12,,,NO
+OUTRES,ALL,NONE
+OUTRES,NSOL,ALL
+SOLVE
+
+*DIM,FREQ,ARRAY,12
+*DO,I,1,12
+  *GET,FREQ(I),MODE,I,FREQ
+*ENDDO
+*CFOPEN,modal_frequencies,csv
+*VWRITE,'mode,frequency_hz'
+(A20)
+*DO,I,1,12
+  FREQ_ONE=FREQ(I)
+  *VWRITE,I,FREQ_ONE
+(F3.0,',',E20.12)
+*ENDDO
+*CFCLOS
+PARSAV,ALL,modal_frequency_parameters,parm
+FINISH
