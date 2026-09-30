@@ -13,10 +13,12 @@ private 저장소이므로 워크스테이션에서 한 번 `gh auth login`이 �
 
 ## 실행
 
-Python 환경에 `numpy`, `meshio`, `pygalmesh`가 필요합니다.
+Windows에서는 CGAL 의존성까지 설치되는 conda-forge 환경을 사용합니다.
 
-```bash
-python run.py
+```powershell
+conda env create -f environment.yml
+conda activate cantilever
+python .\run.py
 ```
 
 ANSYS를 자동으로 찾지 못하면:
