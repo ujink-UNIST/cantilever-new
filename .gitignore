@@ -1,5 +1,6 @@
 # Large/generated geometry and solver files
 *.obj
+*.obj.zip
 *.msh
 *.cdb
 *.out

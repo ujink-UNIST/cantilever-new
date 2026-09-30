@@ -4,12 +4,12 @@
 
 ## 입력 형상
 
-GitHub Release의 다음 파일을 내려받아 프로젝트 루트에 압축 해제합니다.
+OBJ는 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압축해 두었습니다. `run.py`는 OBJ가 없으면 GitHub CLI로 다음 파일을 자동 다운로드·압축 해제합니다.
 
 - `modal_cantilever3.obj.zip`
 - `uniform_cantilever3.obj.zip`
 
-보정된 최신 원본 3MF는 `geometry/`에 있습니다. Release의 OBJ는 현재 폴더에 있던 보정 전 변환본이므로, 최신 반지름을 해석하려면 `geometry/`의 3MF를 OBJ로 다시 변환해 교체해야 합니다. OBJ는 GitHub의 파일 크기 제한 때문에 저장소가 아닌 Release asset으로 배포합니다.
+private 저장소이므로 워크스테이션에서 한 번 `gh auth login`이 필요합니다. `uniform_cantilever3.obj`는 부피 보정 3MF로 만든 최신 파일이며 실체 부피는 약 `86,687 mm³`입니다. `modal_cantilever3.obj`는 반지름 최종 보정 전 파일이므로 최신 modal 해석 전 `geometry/modal_cantilever3_corrected.3mf`에서 다시 변환해야 합니다.
 
 ## 실행
 

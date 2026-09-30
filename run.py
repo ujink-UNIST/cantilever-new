@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parent
 CASES = ("modal", "uniform")
@@ -18,6 +20,29 @@ def execute(*args: str) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
 
 
+def ensure_obj(case: str) -> Path:
+    source = ROOT / f"{case}_cantilever3.obj"
+    if source.is_file():
+        return source
+    archive = ROOT / f"{source.name}.zip"
+    if not archive.is_file():
+        gh = shutil.which("gh")
+        if not gh:
+            raise SystemExit("Missing OBJ and GitHub CLI. Install gh, run 'gh auth login', then retry.")
+        execute(
+            gh, "release", "download", "v1.0",
+            "--repo", "ujink-UNIST/cantilever-new",
+            "--pattern", archive.name,
+            "--dir", str(ROOT),
+        )
+    with ZipFile(archive) as zipped:
+        if zipped.namelist() != [source.name]:
+            raise RuntimeError(f"Unexpected contents in {archive.name}")
+        zipped.extract(source.name, ROOT)
+    archive.unlink()
+    return source
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Create modal3/uniform3 TET10 meshes and run unconstrained free-free modal cases."
@@ -27,11 +52,9 @@ def main() -> None:
     args = parser.parse_args()
 
     for case in CASES:
-        source = ROOT / f"{case}_cantilever3.obj"
+        source = ensure_obj(case)
         volume = ROOT / f"{case}_cantilever3_volume.msh"
         cdb = ROOT / f"{case}_cantilever3_ansys_tet10.cdb"
-        if not source.is_file():
-            raise FileNotFoundError(source)
         if stale(volume, source):
             execute(sys.executable, "mesh_obj3.py", case)
         else:
