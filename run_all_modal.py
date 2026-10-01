@@ -8,14 +8,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-TEMPLATE = ROOT / "run_free_free_modal.inp"
+TEMPLATE = ROOT / "run_fixed_xlt0_modal.inp"
 CASES = [
-    (1, 101, "modal3_inconel718", "modal3", "Inconel 718"),
-    (1, 102, "modal3_structural_steel", "modal3", "Structural Steel"),
-    (1, 103, "modal3_nylon12", "modal3", "Formlabs Nylon 12"),
-    (2, 101, "uniform3_inconel718", "uniform3", "Inconel 718"),
-    (2, 102, "uniform3_structural_steel", "uniform3", "Structural Steel"),
-    (2, 103, "uniform3_nylon12", "uniform3", "Formlabs Nylon 12"),
+    (1, 101, "modal3_xlt0_inconel718", "modal3", "Inconel 718"),
+    (1, 102, "modal3_xlt0_structural_steel", "modal3", "Structural Steel"),
+    (1, 103, "modal3_xlt0_nylon12", "modal3", "Formlabs Nylon 12"),
+    (2, 101, "uniform3_xlt0_inconel718", "uniform3", "Inconel 718"),
+    (2, 102, "uniform3_xlt0_structural_steel", "uniform3", "Structural Steel"),
+    (2, 103, "uniform3_xlt0_nylon12", "uniform3", "Formlabs Nylon 12"),
 ]
 
 
@@ -43,7 +43,7 @@ def find_ansys(given: Path | None) -> Path | None:
 def render(meshcase: int, matcase: int, name: str) -> Path:
     text = TEMPLATE.read_text(encoding="utf-8")
     replacements = {
-        "/FILNAME,free_free_modal,1": f"/FILNAME,{name},1",
+        "/FILNAME,fixed_xlt0_modal,1": f"/FILNAME,{name},1",
         "\nMESHCASE=1\n": f"\nMESHCASE={meshcase}\n",
         "\nMATCASE=101\n": f"\nMATCASE={matcase}\n",
         "*CFOPEN,modal_frequencies,csv": f"*CFOPEN,{name}_frequencies,csv",
@@ -53,7 +53,7 @@ def render(meshcase: int, matcase: int, name: str) -> Path:
         if text.count(old) != 1:
             raise RuntimeError(f"Template marker not found exactly once: {old!r}")
         text = text.replace(old, new)
-    assert "MODOPT,LANPCG,12" in text and "PCGOPT,1,OFF,NO,OFF,OFF" in text and "MSAVE,ON" in text
+    assert "MODOPT,LANPCG,6" in text and "PCGOPT,1,OFF,NO,OFF,OFF" in text and "MSAVE,ON" in text
     path = RUNS / f"{name}.inp"
     try:
         if path.is_file() and path.read_text(encoding="ascii") == text:
@@ -72,11 +72,11 @@ def read_frequencies(path: Path) -> list[float]:
                 mode, frequency = int(float(row[0])), float(row[1])
             except (ValueError, IndexError):
                 continue
-            if 1 <= mode <= 12:
+            if 1 <= mode <= 6:
                 by_mode.setdefault(mode, frequency)
-    if set(by_mode) != set(range(1, 13)):
-        raise RuntimeError(f"Expected modes 1-12 in {path}, found {sorted(by_mode)}")
-    return [by_mode[mode] for mode in range(1, 13)]
+    if set(by_mode) != set(range(1, 7)):
+        raise RuntimeError(f"Expected modes 1-6 in {path}, found {sorted(by_mode)}")
+    return [by_mode[mode] for mode in range(1, 7)]
 
 
 def cleanup_solver_files(job: str) -> None:
@@ -109,7 +109,7 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run unconstrained free-free modal3 and uniform3 with three materials.")
+    parser = argparse.ArgumentParser(description="Run x<0 fixed modal3 and uniform3 with three materials.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate six input decks without MAPDL")
@@ -161,19 +161,13 @@ def main() -> None:
             result_path.unlink(missing_ok=True)
             raise RuntimeError(f"{name} failed; inspect {output_path.name}")
         frequencies = read_frequencies(frequency_path)
-        if frequencies[6] and max(map(abs, frequencies[:6])) > abs(frequencies[6]) * 1e-3:
-            print(f"WARNING: {name} modes 1-6 are not near-zero relative to mode 7", flush=True)
         results.append([name, mesh, material, *frequencies])
         cleanup_solver_files(name)
 
-    summary = RUNS / "free_free_modal_frequencies_all.csv"
+    summary = RUNS / "fixed_xlt0_modal_frequencies_all.csv"
     with summary.open("w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([
-            "case", "mesh", "material",
-            *(f"rigid_body_{i}_hz" for i in range(1, 7)),
-            *(f"f{i}_hz" for i in range(1, 7)),
-        ])
+        writer.writerow(["case", "mesh", "material", *(f"f{i}_hz" for i in range(1, 7))])
         writer.writerows(results)
     print(f"Saved {summary.name}")
 

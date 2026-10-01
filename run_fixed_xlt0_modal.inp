@@ -1,11 +1,10 @@
-! TET10 unconstrained free-free modal analysis (mm, N, s, MPa)
+! TET10 fixed-free modal analysis with every x<0 node fixed (mm, N, s, MPa)
 ! MESHCASE: 1=modal_cantilever3, 2=uniform_cantilever3
 ! MATCASE : 101=Inconel 718, 102=Structural Steel, 103=Formlabs Nylon 12 (SLS)
-! Modes 1-6 are rigid-body modes; modes 7-12 are elastic f1-f6.
 
 FINISH
 /CLEAR,NOSTART
-/FILNAME,free_free_modal,1
+/FILNAME,fixed_xlt0_modal,1
 MESHCASE=1
 MATCASE=101
 
@@ -49,33 +48,44 @@ MP,DENS,103,9.900E-10
 *ENDIF
 EMODIF,ALL,MAT,MATCASE
 
-! True free-free model: no displacement constraints.
+! Fix every node strictly below x=0.
 ALLSEL,ALL
 DDELE,ALL,ALL
+SELTOL,1.0E-9
+NSEL,S,LOC,X,-1.0E9,-1.0E-9
+*GET,NFIX,NODE,0,COUNT
+*IF,NFIX,LE,0,THEN
+  /COM,ERROR: No nodes satisfy x<0.
+  /EXIT,NOSAVE
+*ENDIF
+CM,FIX_X_LT_0,NODE
+D,ALL,UX,0
+D,ALL,UY,0
+D,ALL,UZ,0
+ALLSEL,ALL
 FINISH
 
 /SOLU
 ANTYPE,MODAL
 PSTRES,OFF
 LUMPM,OFF
-! PCG Lanczos detects rigid-body modes and avoids the sparse factorization's 38 GB peak.
-! Element-by-element SOLID187 assembly can save up to 70% memory.
-MODOPT,LANPCG,12
+! Element-by-element PCG Lanczos avoids the sparse factorization's 38 GB peak.
+MODOPT,LANPCG,6
 PCGOPT,1,OFF,NO,OFF,OFF
 MSAVE,ON
-MXPAND,12,,,NO
+MXPAND,6,,,NO
 OUTRES,ALL,NONE
 OUTRES,NSOL,ALL
 SOLVE
 
-*DIM,FREQ,ARRAY,12
-*DO,I,1,12
+*DIM,FREQ,ARRAY,6
+*DO,I,1,6
   *GET,FREQ(I),MODE,I,FREQ
 *ENDDO
 *CFOPEN,modal_frequencies,csv
 *VWRITE,'mode,frequency_hz'
 (A20)
-*DO,I,1,12
+*DO,I,1,6
   FREQ_ONE=FREQ(I)
   *VWRITE,I,FREQ_ONE
 (F3.0,',',E20.12)
