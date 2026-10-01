@@ -35,3 +35,14 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 4. `runs/free_free_modal_frequencies_all.csv` 저장
 
 경계조건은 없는 true free-free입니다. 추출된 12개 모드 중 1–6차는 강체 모드, 7–12차는 탄성 고유진동 `f1–f6`입니다.
+
+## 3D 프린팅용 경량 OBJ
+
+Release의 `*_print.obj.zip`은 원본 대비 face 수를 약 90% 줄이고 MeshFix로 폐쇄·manifold 상태를 복구한 파일입니다.
+
+| 형상 | 원본 face | 경량 face | 부피 변화 |
+|---|---:|---:|---:|
+| modal | 49,907,540 | 4,987,952 | -0.177% |
+| uniform | 48,789,056 | 4,875,214 | -0.184% |
+
+두 경량 모델 사이의 부피 차이는 약 `0.019%`입니다. 다시 만들려면 `python .\reduce_obj_for_print.py`를 실행합니다.
