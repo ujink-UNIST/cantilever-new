@@ -8,14 +8,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-TEMPLATE = ROOT / "run_fixed_xlt0_modal.inp"
+TEMPLATE = ROOT / "run_fixed_xle0_modal.inp"
 CASES = [
-    (1, 101, "modal3_xlt0_inconel718", "modal3", "Inconel 718"),
-    (1, 102, "modal3_xlt0_structural_steel", "modal3", "Structural Steel"),
-    (1, 103, "modal3_xlt0_nylon12", "modal3", "Formlabs Nylon 12"),
-    (2, 101, "uniform3_xlt0_inconel718", "uniform3", "Inconel 718"),
-    (2, 102, "uniform3_xlt0_structural_steel", "uniform3", "Structural Steel"),
-    (2, 103, "uniform3_xlt0_nylon12", "uniform3", "Formlabs Nylon 12"),
+    (1, 101, "modal3_xle0_inconel718", "modal3", "Inconel 718"),
+    (1, 102, "modal3_xle0_structural_steel", "modal3", "Structural Steel"),
+    (1, 103, "modal3_xle0_nylon12", "modal3", "Formlabs Nylon 12"),
+    (2, 101, "uniform3_xle0_inconel718", "uniform3", "Inconel 718"),
+    (2, 102, "uniform3_xle0_structural_steel", "uniform3", "Structural Steel"),
+    (2, 103, "uniform3_xle0_nylon12", "uniform3", "Formlabs Nylon 12"),
 ]
 
 
@@ -43,7 +43,7 @@ def find_ansys(given: Path | None) -> Path | None:
 def render(meshcase: int, matcase: int, name: str) -> Path:
     text = TEMPLATE.read_text(encoding="utf-8")
     replacements = {
-        "/FILNAME,fixed_xlt0_modal,1": f"/FILNAME,{name},1",
+        "/FILNAME,fixed_xle0_modal,1": f"/FILNAME,{name},1",
         "\nMESHCASE=1\n": f"\nMESHCASE={meshcase}\n",
         "\nMATCASE=101\n": f"\nMATCASE={matcase}\n",
         "*CFOPEN,modal_frequencies,csv": f"*CFOPEN,{name}_frequencies,csv",
@@ -109,7 +109,7 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run x<0 fixed modal3 and uniform3 with three materials.")
+    parser = argparse.ArgumentParser(description="Run x<=0 fixed modal3 and uniform3 with three materials.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate six input decks without MAPDL")
@@ -164,7 +164,7 @@ def main() -> None:
         results.append([name, mesh, material, *frequencies])
         cleanup_solver_files(name)
 
-    summary = RUNS / "fixed_xlt0_modal_frequencies_all.csv"
+    summary = RUNS / "fixed_xle0_modal_frequencies_all.csv"
     with summary.open("w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["case", "mesh", "material", *(f"f{i}_hz" for i in range(1, 7))])

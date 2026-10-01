@@ -1,10 +1,10 @@
-! TET10 fixed-free modal analysis with every x<0 node fixed (mm, N, s, MPa)
+! TET10 fixed-free modal analysis with every x<=0 node fixed (mm, N, s, MPa)
 ! MESHCASE: 1=modal_cantilever3, 2=uniform_cantilever3
 ! MATCASE : 101=Inconel 718, 102=Structural Steel, 103=Formlabs Nylon 12 (SLS)
 
 FINISH
 /CLEAR,NOSTART
-/FILNAME,fixed_xlt0_modal,1
+/FILNAME,fixed_xle0_modal,1
 MESHCASE=1
 MATCASE=101
 
@@ -48,14 +48,14 @@ MP,DENS,103,9.900E-10
 *ENDIF
 EMODIF,ALL,MAT,MATCASE
 
-! Fix every node strictly below x=0.
+! Fix every node at or below x=0.
 ALLSEL,ALL
 DDELE,ALL,ALL
 SELTOL,1.0E-9
-NSEL,S,LOC,X,-1.0E9,-1.0E-9
+NSEL,S,LOC,X,-1.0E9,0
 *GET,NFIX,NODE,0,COUNT
 *IF,NFIX,LE,0,THEN
-  /COM,ERROR: No nodes satisfy x<0.
+  /COM,ERROR: No nodes satisfy x<=0.
   /EXIT,NOSAVE
 *ENDIF
 CM,FIX_X_LT_0,NODE

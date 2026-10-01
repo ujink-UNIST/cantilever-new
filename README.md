@@ -1,6 +1,6 @@
 # cantilever-new
 
-`modal3`와 `uniform3` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, 세 재료의 `x < 0` 고정 modal 해석을 실행합니다.
+`modal3`와 `uniform3` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, 세 재료의 `x ≤ 0` 고정 modal 해석을 실행합니다.
 
 ## 입력 형상
 
@@ -32,9 +32,9 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 1. OBJ를 pygalmesh TET4 volume mesh로 변환
 2. edge 중간 절점을 추가해 SOLID187 TET10 CDB 생성
 3. `runs/`에서 Inconel 718, Structural Steel, Formlabs Nylon 12 해석
-4. `runs/fixed_xlt0_modal_frequencies_all.csv` 저장
+4. `runs/fixed_xle0_modal_frequencies_all.csv` 저장
 
-경계조건은 `x < 0`인 모든 노드의 `UX/UY/UZ=0`이며, 탄성 모드 `f1–f6`를 추출합니다.
+경계조건은 `x ≤ 0`인 모든 노드의 `UX/UY/UZ=0`이며, 탄성 모드 `f1–f6`를 추출합니다.
 
 ## 3D 프린팅용 경량 OBJ
 

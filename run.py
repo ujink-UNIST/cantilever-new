@@ -44,7 +44,7 @@ def ensure_obj(case: str) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create modal3/uniform3 TET10 meshes and run x<0 fixed modal cases."
+        description="Create modal3/uniform3 TET10 meshes and run x<=0 fixed modal cases."
     )
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe; auto-detected if omitted")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
@@ -67,7 +67,7 @@ def main() -> None:
     if args.exe:
         command += ["--exe", str(args.exe.resolve())]
     execute(*command)
-    print(f"\nResults: {ROOT / 'runs' / 'fixed_xlt0_modal_frequencies_all.csv'}")
+    print(f"\nResults: {ROOT / 'runs' / 'fixed_xle0_modal_frequencies_all.csv'}")
 
 
 if __name__ == "__main__":
