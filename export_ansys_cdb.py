@@ -7,15 +7,17 @@ import meshio
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent
-STEMS = {
-    "modal": "modal_cantilever3",
-    "uniform": "uniform_cantilever3",
-}
+STEMS = (
+    "modal_cantilever3",
+    "uniform_cantilever3",
+    "modal_cantilever4",
+    "uniform_cantilever4",
+)
 EDGE_ORDER = np.array(((0, 1), (1, 2), (2, 0), (0, 3), (1, 3), (2, 3)))
 
 
 def export(case: str) -> None:
-    stem = STEMS[case]
+    stem = case
     source = ROOT / f"{stem}_volume.msh"
     output = ROOT / f"{stem}_ansys_tet10.cdb"
     mesh = meshio.read(source, file_format="gmsh")
@@ -68,7 +70,7 @@ def export(case: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert a cantilever3 tetra mesh to ANSYS SOLID187 CDB.")
+    parser = argparse.ArgumentParser(description="Convert a cantilever tetra mesh to ANSYS SOLID187 CDB.")
     parser.add_argument("case", choices=STEMS)
     args = parser.parse_args()
     export(args.case)
