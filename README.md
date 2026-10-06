@@ -44,7 +44,7 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 python .\csv_to_thick_graph_3mf.py
 ```
 
-출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`, uniform 초기 공통 반지름은 `0.37798 mm`입니다. uniform은 아직 실체 부피 보정 전이므로 두 모델을 nTop에서 solid/OBJ로 변환한 뒤 부피를 맞춥니다.
+출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`입니다. 첫 OBJ의 실체 부피는 design `10,658.24 mm³`, uniform `9,191.15 mm³`였으며, uniform 공통 반지름을 `0.37798 → 0.412468 mm`로 보정했습니다. 최종 uniform OBJ는 보정된 3MF에서 다시 변환합니다.
 
 ## 3D 프린팅용 경량 OBJ
 
