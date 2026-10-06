@@ -14,7 +14,7 @@ DEFAULTS = (
     "cantilever16_mo_w0.50_dia1.0_noisland_from_modal_s0.5",
     "cantilever16_uniform_modal_s0.5",
 )
-RADIUS_OVERRIDES = {"cantilever16_uniform_modal_s0.5": 0.412468}
+RADIUS_OVERRIDES = {"cantilever16_uniform_modal_s0.5": 0.411625}
 CORE = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
 BEAM = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02"
 BALL = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07"
