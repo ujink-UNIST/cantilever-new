@@ -118,7 +118,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run unconstrained free-free cantilever3/4 cases with three materials.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
-    parser.add_argument("--prepare-only", action="store_true", help="Generate six input decks without MAPDL")
+    parser.add_argument("--prepare-only", action="store_true", help="Generate input decks without MAPDL")
     args = parser.parse_args()
     RUNS.mkdir(exist_ok=True)
 
@@ -127,9 +127,10 @@ def main() -> None:
         print("Generated:", *(path.name for _, path in inputs), sep="\n  ")
         return
 
-    for cdb in ("modal_cantilever3_ansys_tet10.cdb", "uniform_cantilever3_ansys_tet10.cdb"):
-        if not (ROOT / cdb).is_file():
-            raise FileNotFoundError(ROOT / cdb)
+    for stem in ("modal_cantilever3", "uniform_cantilever3", "modal_cantilever4", "uniform_cantilever4"):
+        cdb = ROOT / f"{stem}_ansys_tet10.cdb"
+        if not cdb.is_file():
+            raise FileNotFoundError(cdb)
 
     exe = find_ansys(args.exe)
     if not exe:
