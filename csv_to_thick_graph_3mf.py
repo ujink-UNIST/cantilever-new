@@ -14,6 +14,7 @@ DEFAULTS = (
     "cantilever16_mo_w0.50_dia1.0_noisland_from_modal_s0.5",
     "cantilever16_uniform_modal_s0.5",
 )
+RADIUS_OVERRIDES = {"cantilever16_uniform_modal_s0.5": 0.412468}
 CORE = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
 BEAM = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02"
 BALL = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07"
@@ -56,7 +57,7 @@ def package(model: ET.Element, output: Path) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def convert(folder: Path, output: Path) -> None:
+def convert(folder: Path, output: Path, radius_override: float | None = None) -> None:
     node_rows = rows(folder, "nodes.csv")
     points = {
         int(row.get("id", row.get("node", ""))): tuple(float(row[axis]) for axis in "xyz")
@@ -68,7 +69,7 @@ def convert(folder: Path, output: Path) -> None:
     min_length = math.inf
     for row in rows(folder, "struts.csv"):
         n1, n2 = int(row["n1"]), int(row["n2"])
-        radius = float(row["radius_mm"])
+        radius = radius_override if radius_override is not None else float(row["radius_mm"])
         length = math.dist(points[n1], points[n2])
         if radius <= 0 or length <= 0:
             raise ValueError(f"Invalid strut {row.get('id', row.get('strut'))}")
@@ -129,7 +130,11 @@ def main() -> None:
     args = parser.parse_args()
     for folder in args.folders or [ROOT / name for name in DEFAULTS]:
         folder = folder.resolve()
-        convert(folder, ROOT / "geometry" / f"{folder.name}_thick_lattice_graph.3mf")
+        convert(
+            folder,
+            ROOT / "geometry" / f"{folder.name}_thick_lattice_graph.3mf",
+            RADIUS_OVERRIDES.get(folder.name),
+        )
 
 
 if __name__ == "__main__":
