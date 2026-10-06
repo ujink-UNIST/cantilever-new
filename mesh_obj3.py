@@ -14,8 +14,13 @@ SCALES = {
     "modal_cantilever4": 0.5,
     "uniform_cantilever4": 0.5,
 }
+VOXELS = {
+    "modal_cantilever3": 0.25,
+    "uniform_cantilever3": 0.25,
+    "modal_cantilever4": 0.125,
+    "uniform_cantilever4": 0.2,  # Its coarser OBJ facets span up to 0.186 mm.
+}
 SOURCES = {stem: ROOT / f"{stem}.obj" for stem in SCALES}
-BASE_VOXEL = 0.25
 PAD = 2
 OFFSETS = np.array([0.419, 0.371, 0.583])  # Avoid rays through source edges.
 FACE_BLOCK = 500_000
@@ -25,7 +30,7 @@ def mesh_case(case: str) -> None:
     source = SOURCES[case]
     output = ROOT / f"{source.stem}_volume.msh"
     scale = SCALES[case]
-    VOXEL = BASE_VOXEL * scale
+    VOXEL = VOXELS[case]
 
     with source.open() as obj:
         header = obj.readline()
