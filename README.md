@@ -1,13 +1,15 @@
 # cantilever-new
 
-`modal3`와 `uniform3` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, 세 재료의 `x ≤ 0` 고정 modal 해석을 실행합니다.
+`modal3/uniform3`와 `modal4/uniform4` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, 세 재료의 `x ≤ 0` 고정 modal 해석을 실행합니다.
 
 ## 입력 형상
 
-OBJ는 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압축해 두었습니다. `run.py`는 OBJ가 없으면 GitHub CLI로 다음 파일을 자동 다운로드·압축 해제합니다.
+OBJ는 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압축해 두었습니다. `run.py`는 OBJ가 없으면 다음 파일을 자동 다운로드·압축 해제합니다.
 
 - `modal_cantilever3.obj.zip`
 - `uniform_cantilever3.obj.zip`
+- `modal_cantilever4.obj.zip`
+- `uniform_cantilever4.obj.zip`
 
 공개 저장소이므로 GitHub 인증은 필요하지 않습니다. 최종 OBJ 실체 부피는 modal `83,319.77 mm³`, uniform `83,341.32 mm³`로 차이는 `0.026%`입니다. uniform 공통 반지름은 `0.806104 mm`입니다.
 
@@ -44,7 +46,7 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 python .\csv_to_thick_graph_3mf.py
 ```
 
-출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`입니다. 첫 OBJ의 실체 부피는 design `10,658.24 mm³`, uniform `9,191.15 mm³`였으며, 1차 보정 OBJ가 `10,695.02 mm³`로 0.345% 컸기 때문에 uniform 공통 반지름을 `0.411625 mm`로 재보정했습니다. 최종 uniform OBJ는 보정된 3MF에서 다시 변환합니다.
+출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`, 최종 uniform 공통 반지름은 `0.411625 mm`입니다. 최종 OBJ 실체 부피는 modal `10,658.24 mm³`, uniform `10,657.99 mm³`로 차이는 `0.0023%`입니다.
 
 ## 3D 프린팅용 경량 OBJ
 

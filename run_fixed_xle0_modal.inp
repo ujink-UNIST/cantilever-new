@@ -1,5 +1,5 @@
 ! TET10 fixed-free modal analysis with every x<=0 node fixed (mm, N, s, MPa)
-! MESHCASE: 1=modal_cantilever3, 2=uniform_cantilever3
+! MESHCASE: 1=modal3, 2=uniform3, 3=modal4, 4=uniform4
 ! MATCASE : 101=Inconel 718, 102=Structural Steel, 103=Formlabs Nylon 12 (SLS)
 
 FINISH
@@ -13,9 +13,13 @@ MATCASE=101
   /INPUT,../modal_cantilever3_ansys_tet10,cdb
 *ELSEIF,MESHCASE,EQ,2,THEN
   /INPUT,../uniform_cantilever3_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,3,THEN
+  /INPUT,../modal_cantilever4_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,4,THEN
+  /INPUT,../uniform_cantilever4_ansys_tet10,cdb
 *ELSE
   /GOPR
-  /COM,ERROR: MESHCASE must be 1 or 2.
+  /COM,ERROR: MESHCASE must be 1, 2, 3, or 4.
   /EXIT,NOSAVE
 *ENDIF
 /GOPR

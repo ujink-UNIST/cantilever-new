@@ -8,7 +8,12 @@ from pathlib import Path
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parent
-CASES = ("modal", "uniform")
+STEMS = (
+    "modal_cantilever3",
+    "uniform_cantilever3",
+    "modal_cantilever4",
+    "uniform_cantilever4",
+)
 
 
 def stale(output: Path, source: Path) -> bool:
@@ -20,8 +25,8 @@ def execute(*args: str) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
 
 
-def ensure_obj(case: str) -> Path:
-    source = ROOT / f"{case}_cantilever3.obj"
+def ensure_obj(stem: str) -> Path:
+    source = ROOT / f"{stem}.obj"
     if source.is_file():
         return source
     archive = ROOT / f"{source.name}.zip"
@@ -44,22 +49,22 @@ def ensure_obj(case: str) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create modal3/uniform3 TET10 meshes and run x<=0 fixed modal cases."
+        description="Create cantilever3/4 TET10 meshes and run x<=0 fixed modal cases."
     )
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe; auto-detected if omitted")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     args = parser.parse_args()
 
-    for case in CASES:
-        source = ensure_obj(case)
-        volume = ROOT / f"{case}_cantilever3_volume.msh"
-        cdb = ROOT / f"{case}_cantilever3_ansys_tet10.cdb"
+    for stem in STEMS:
+        source = ensure_obj(stem)
+        volume = ROOT / f"{stem}_volume.msh"
+        cdb = ROOT / f"{stem}_ansys_tet10.cdb"
         if stale(volume, source):
-            execute(sys.executable, "mesh_obj3.py", case)
+            execute(sys.executable, "mesh_obj3.py", stem)
         else:
             print(f"Reusing {volume.name}")
         if stale(cdb, volume):
-            execute(sys.executable, "export_ansys_cdb.py", case)
+            execute(sys.executable, "export_ansys_cdb.py", stem)
         else:
             print(f"Reusing {cdb.name}")
 

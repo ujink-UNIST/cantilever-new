@@ -8,11 +8,14 @@ import numpy as np
 import pygalmesh
 
 ROOT = Path(__file__).resolve().parent
-SOURCES = {
-    "modal": ROOT / "modal_cantilever3.obj",
-    "uniform": ROOT / "uniform_cantilever3.obj",
+SCALES = {
+    "modal_cantilever3": 1.0,
+    "uniform_cantilever3": 1.0,
+    "modal_cantilever4": 0.5,
+    "uniform_cantilever4": 0.5,
 }
-VOXEL = 0.25
+SOURCES = {stem: ROOT / f"{stem}.obj" for stem in SCALES}
+BASE_VOXEL = 0.25
 PAD = 2
 OFFSETS = np.array([0.419, 0.371, 0.583])  # Avoid rays through source edges.
 FACE_BLOCK = 500_000
@@ -21,6 +24,8 @@ FACE_BLOCK = 500_000
 def mesh_case(case: str) -> None:
     source = SOURCES[case]
     output = ROOT / f"{source.stem}_volume.msh"
+    scale = SCALES[case]
+    VOXEL = BASE_VOXEL * scale
 
     with source.open() as obj:
         header = obj.readline()
@@ -122,10 +127,10 @@ def mesh_case(case: str) -> None:
         np.pad(solid, PAD),
         (VOXEL,) * 3,
         min_facet_angle=25,
-        max_radius_surface_delaunay_ball=0.75,
-        max_facet_distance=0.1,
+        max_radius_surface_delaunay_ball=0.75 * scale,
+        max_facet_distance=0.1 * scale,
         max_circumradius_edge_ratio=3,
-        max_cell_circumradius=1.0,
+        max_cell_circumradius=1.0 * scale,
         verbose=True,
         seed=1,
     )
@@ -145,7 +150,7 @@ def mesh_case(case: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Voxelize and tetrahedralize a cantilever3 OBJ.")
+    parser = argparse.ArgumentParser(description="Voxelize and tetrahedralize a cantilever OBJ.")
     parser.add_argument("case", choices=SOURCES)
     args = parser.parse_args()
     mesh_case(args.case)

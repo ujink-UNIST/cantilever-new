@@ -16,6 +16,12 @@ CASES = [
     (2, 101, "uniform3_xle0_inconel718", "uniform3", "Inconel 718"),
     (2, 102, "uniform3_xle0_structural_steel", "uniform3", "Structural Steel"),
     (2, 103, "uniform3_xle0_nylon12", "uniform3", "Formlabs Nylon 12"),
+    (3, 101, "modal4_xle0_inconel718", "modal4", "Inconel 718"),
+    (3, 102, "modal4_xle0_structural_steel", "modal4", "Structural Steel"),
+    (3, 103, "modal4_xle0_nylon12", "modal4", "Formlabs Nylon 12"),
+    (4, 101, "uniform4_xle0_inconel718", "uniform4", "Inconel 718"),
+    (4, 102, "uniform4_xle0_structural_steel", "uniform4", "Structural Steel"),
+    (4, 103, "uniform4_xle0_nylon12", "uniform4", "Formlabs Nylon 12"),
 ]
 
 
@@ -109,7 +115,7 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run x<=0 fixed modal3 and uniform3 with three materials.")
+    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4 cases with three materials.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate six input decks without MAPDL")
