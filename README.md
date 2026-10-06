@@ -36,6 +36,16 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 
 경계조건은 `x ≤ 0`인 모든 노드의 `UX/UY/UZ=0`이며, 탄성 모드 `f1–f6`를 추출합니다.
 
+## s0.5 nTop thick graph
+
+두 CSV 그래프를 nTop에서 가져올 수 있는 3MF beam-lattice/ball thick graph로 변환합니다.
+
+```powershell
+python .\csv_to_thick_graph_3mf.py
+```
+
+출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`, uniform 초기 공통 반지름은 `0.37798 mm`입니다. uniform은 아직 실체 부피 보정 전이므로 두 모델을 nTop에서 solid/OBJ로 변환한 뒤 부피를 맞춥니다.
+
 ## 3D 프린팅용 경량 OBJ
 
 Release의 `*_print.obj.zip`은 원본 대비 face 수를 약 90% 줄이고 MeshFix로 폐쇄·manifold 상태를 복구한 파일입니다.
