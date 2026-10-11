@@ -6,13 +6,9 @@ from pathlib import Path
 import meshio
 import numpy as np
 
+from run import STEMS
+
 ROOT = Path(__file__).resolve().parent
-STEMS = (
-    "modal_cantilever3",
-    "uniform_cantilever3",
-    "modal_cantilever4",
-    "uniform_cantilever4",
-)
 EDGE_ORDER = np.array(((0, 1), (1, 2), (2, 0), (0, 3), (1, 3), (2, 3)))
 
 

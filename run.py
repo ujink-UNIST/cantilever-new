@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.request
 from pathlib import Path
 from zipfile import ZipFile
@@ -13,7 +16,10 @@ STEMS = (
     "uniform_cantilever3",
     "modal_cantilever4",
     "uniform_cantilever4",
+    "modal-8",
+    "uniform-8",
 )
+SOURCES = {stem: ROOT / f"{stem}.{'stl' if stem.endswith('-8') else 'obj'}" for stem in STEMS}
 
 
 def stale(output: Path, source: Path) -> bool:
@@ -25,8 +31,8 @@ def execute(*args: str) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
 
 
-def ensure_obj(stem: str) -> Path:
-    source = ROOT / f"{stem}.obj"
+def ensure_surface(stem: str) -> Path:
+    source = SOURCES[stem]
     if source.is_file():
         return source
     archive = ROOT / f"{source.name}.zip"
@@ -42,21 +48,26 @@ def ensure_obj(stem: str) -> Path:
     with ZipFile(archive) as zipped:
         if zipped.namelist() != [source.name]:
             raise RuntimeError(f"Unexpected contents in {archive.name}")
-        zipped.extract(source.name, ROOT)
+        with tempfile.TemporaryDirectory(dir=ROOT) as folder:
+            staged = Path(folder) / source.name
+            with zipped.open(source.name) as incoming, staged.open("xb") as outgoing:
+                shutil.copyfileobj(incoming, outgoing, 8 * 1024 * 1024)
+            os.link(staged, source)  # Publish a complete file without replacing user geometry.
     archive.unlink()
     return source
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Create cantilever3/4 TET10 meshes and run unconstrained free-free modal cases."
+        description="Create cantilever3/4/8 TET10 meshes and run unconstrained free-free modal cases."
     )
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe; auto-detected if omitted")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
+    parser.add_argument("--cases", nargs="+", choices=STEMS, default=STEMS, help="Models to run; defaults to all")
     args = parser.parse_args()
 
-    for stem in STEMS:
-        source = ensure_obj(stem)
+    for stem in args.cases:
+        source = ensure_surface(stem)
         volume = ROOT / f"{stem}_volume.msh"
         cdb = ROOT / f"{stem}_ansys_tet10.cdb"
         if stale(volume, source):
@@ -68,7 +79,7 @@ def main() -> None:
         else:
             print(f"Reusing {cdb.name}")
 
-    command = [sys.executable, "run_all_modal.py", "--np", str(args.np)]
+    command = [sys.executable, "run_all_modal.py", "--np", str(args.np), "--cases", *args.cases]
     if args.exe:
         command += ["--exe", str(args.exe.resolve())]
     execute(*command)

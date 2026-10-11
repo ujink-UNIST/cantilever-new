@@ -1,6 +1,9 @@
 # Large/generated geometry and solver files
 *.obj
 *.obj.zip
+*.stl
+*.stl.zip
+print_simplification/
 *.msh
 *.cdb
 *.out
