@@ -6,6 +6,8 @@ import os
 import subprocess
 from pathlib import Path
 
+from run import STEMS
+
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 TEMPLATE = ROOT / "run_fixed_xle0_modal.inp"
@@ -22,6 +24,12 @@ CASES = [
     (4, 101, "uniform4_xle0_inconel718", "uniform4", "Inconel 718"),
     (4, 102, "uniform4_xle0_structural_steel", "uniform4", "Structural Steel"),
     (4, 103, "uniform4_xle0_nylon12", "uniform4", "Formlabs Nylon 12"),
+    (5, 101, "modal8_xle0_inconel718", "modal8", "Inconel 718"),
+    (5, 102, "modal8_xle0_structural_steel", "modal8", "Structural Steel"),
+    (5, 103, "modal8_xle0_nylon12", "modal8", "Formlabs Nylon 12"),
+    (6, 101, "uniform8_xle0_inconel718", "uniform8", "Inconel 718"),
+    (6, 102, "uniform8_xle0_structural_steel", "uniform8", "Structural Steel"),
+    (6, 103, "uniform8_xle0_nylon12", "uniform8", "Formlabs Nylon 12"),
 ]
 
 
@@ -115,19 +123,21 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4 cases with three materials.")
+    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4/8 cases with three materials.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate input decks without MAPDL")
+    parser.add_argument("--cases", nargs="+", choices=STEMS, default=STEMS, help="Models to run; defaults to all")
     args = parser.parse_args()
     RUNS.mkdir(exist_ok=True)
 
-    inputs = [(case, render(*case[:3])) for case in CASES]
+    selected = [case for case in CASES if STEMS[case[0] - 1] in args.cases]
+    inputs = [(case, render(*case[:3])) for case in selected]
     if args.prepare_only:
         print("Generated:", *(path.name for _, path in inputs), sep="\n  ")
         return
 
-    for stem in ("modal_cantilever3", "uniform_cantilever3", "modal_cantilever4", "uniform_cantilever4"):
+    for stem in args.cases:
         cdb = ROOT / f"{stem}_ansys_tet10.cdb"
         if not cdb.is_file():
             raise FileNotFoundError(cdb)

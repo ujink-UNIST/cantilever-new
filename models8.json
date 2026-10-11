@@ -1,0 +1,73 @@
+{
+  "release": "v1.0",
+  "units": "mm",
+  "includes_jig": false,
+  "models": [
+    {
+      "filename": "modal-8.stl",
+      "bytes": 2486750284,
+      "sha256": "2938c266c5371bf9a111db87d795fb3ad01791654959ff504c0cc28cc6b3a8a4",
+      "archive": "modal-8.stl.zip",
+      "archive_bytes": 909619433,
+      "archive_sha256": "98c080485bdc41461c5a615c84739a9970f1bc33c61335be84d5673c29690e48",
+      "faces": 49735004,
+      "signed_volume_mm3": 85595.70877431566,
+      "bounds_mm": [
+        [
+          -0.9450474977493286,
+          -0.946370005607605,
+          -0.946370005607605
+        ],
+        [
+          160.5619659423828,
+          50.946372985839844,
+          50.946372985839844
+        ]
+      ],
+      "voxel_check": {
+        "voxel_mm": 0.2,
+        "source_volume_mm3": 85595.70877431877,
+        "voxel_volume_mm3": 85458.90400000002,
+        "volume_change_percent": -0.15982667388086957,
+        "shape": [
+          808,
+          260,
+          260
+        ]
+      }
+    },
+    {
+      "filename": "uniform-8.stl",
+      "bytes": 2428700884,
+      "sha256": "86a22b1683c50ad91d2b4f7669ab7bbf5ec88948e963060f899b7d4c1986788e",
+      "archive": "uniform-8.stl.zip",
+      "archive_bytes": 650539878,
+      "archive_sha256": "4d3a4829cf30d0b11ab391a620c74faa5031b66c9d7d01b1e1846e97f6096b5c",
+      "faces": 48574016,
+      "signed_volume_mm3": 85419.93561501909,
+      "bounds_mm": [
+        [
+          -0.8163356184959412,
+          -0.8178707361221313,
+          -0.8178707361221313
+        ],
+        [
+          160.8163299560547,
+          50.817874908447266,
+          50.817874908447266
+        ]
+      ],
+      "voxel_check": {
+        "voxel_mm": 0.2,
+        "source_volume_mm3": 85419.93561503173,
+        "voxel_volume_mm3": 85249.12000000002,
+        "volume_change_percent": -0.19997160358623534,
+        "shape": [
+          810,
+          260,
+          260
+        ]
+      }
+    }
+  ]
+}
