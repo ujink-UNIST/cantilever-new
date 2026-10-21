@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import os
 import subprocess
 from pathlib import Path
@@ -11,14 +12,20 @@ from run import STEMS
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 TEMPLATE = ROOT / "run_fixed_xle0_modal.inp"
+MESHES = ("modal3", "uniform3", "modal4", "uniform4", "modal8", "uniform8")
 CASES = [
-    (1, 101, "modal3_xle0_ms1", "modal3", "EOS MaragingSteel MS1"),
-    (2, 101, "uniform3_xle0_ms1", "uniform3", "EOS MaragingSteel MS1"),
-    (3, 101, "modal4_xle0_ms1", "modal4", "EOS MaragingSteel MS1"),
-    (4, 101, "uniform4_xle0_ms1", "uniform4", "EOS MaragingSteel MS1"),
-    (5, 101, "modal8_xle0_ms1", "modal8", "EOS MaragingSteel MS1"),
-    (6, 101, "uniform8_xle0_ms1", "uniform8", "EOS MaragingSteel MS1"),
+    (meshcase, matcase, f"{mesh}_xle0_nu{nu}", mesh, f"whitened nu={poisson:.2f}")
+    for meshcase, mesh in enumerate(MESHES, 1)
+    for matcase, nu, poisson in ((201, "030", 0.30), (202, "039", 0.39))
 ]
+MATERIALS = {
+    201: (
+        ("inconel718", "Inconel 718", 165000.0, 8.220e-9),
+        ("structural_steel", "Structural Steel", 200000.0, 7.850e-9),
+        ("ms1", "EOS MaragingSteel MS1 (heat treated)", 190000.0, 8.100e-9),
+    ),
+    202: (("nylon12", "Formlabs Nylon 12", 1850.0, 9.900e-10),),
+}
 
 
 def find_ansys(given: Path | None) -> Path | None:
@@ -47,7 +54,7 @@ def render(meshcase: int, matcase: int, name: str) -> Path:
     replacements = {
         "/FILNAME,fixed_xle0_modal,1": f"/FILNAME,{name},1",
         "\nMESHCASE=1\n": f"\nMESHCASE={meshcase}\n",
-        "\nMATCASE=101\n": f"\nMATCASE={matcase}\n",
+        "\nMATCASE=201\n": f"\nMATCASE={matcase}\n",
         "*CFOPEN,modal_frequencies,csv": f"*CFOPEN,{name}_frequencies,csv",
         "PARSAV,ALL,modal_frequency_parameters,parm": f"PARSAV,ALL,{name}_frequencies,parm",
     }
@@ -81,6 +88,16 @@ def read_frequencies(path: Path) -> list[float]:
     return [by_mode[mode] for mode in range(1, 7)]
 
 
+def scaled_rows(mesh: str, matcase: int, frequencies: list[float]) -> list[list[str | float]]:
+    return [
+        [
+            f"{mesh}_xle0_{suffix}", mesh, material,
+            *(frequency * math.sqrt(elastic_modulus / density) for frequency in frequencies),
+        ]
+        for suffix, material, elastic_modulus, density in MATERIALS[matcase]
+    ]
+
+
 def cleanup_solver_files(job: str) -> None:
     for suffix in (
         "mode", "full", "full_mat2", "emat", "esav", "db", "rdb", "tri", "mntr",
@@ -111,7 +128,7 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4/8 cases with MS1.")
+    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4/8 cases using two whitened material solves.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate input decks without MAPDL")
@@ -149,7 +166,7 @@ def main() -> None:
                 pass
             else:
                 print(f"Reusing completed {name} ...", flush=True)
-                results.append([name, mesh, material, *frequencies])
+                results.extend(scaled_rows(mesh, matcase, frequencies))
                 cleanup_solver_files(name)
                 continue
 
@@ -166,7 +183,7 @@ def main() -> None:
             result_path.unlink(missing_ok=True)
             raise RuntimeError(f"{name} failed; inspect {output_path.name}")
         frequencies = read_frequencies(frequency_path)
-        results.append([name, mesh, material, *frequencies])
+        results.extend(scaled_rows(mesh, matcase, frequencies))
         cleanup_solver_files(name)
 
     summary = RUNS / "fixed_xle0_modal_frequencies_all.csv"
