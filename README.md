@@ -4,16 +4,13 @@
 
 ## 입력 형상
 
-OBJ/STL 모델은 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압축해 두었습니다. `run.py`는 입력 형상이 없으면 다음 파일을 자동 다운로드·압축 해제합니다.
+3/4번 모델은 Git에 포함된 3MF beam-lattice/ball graph를 직접 사용합니다. nTop 및 중간 OBJ/surface mesh는 해석에 필요하지 않습니다.
 
-- `modal_cantilever3.obj.zip`
-- `uniform_cantilever3.obj.zip`
-- `modal_cantilever4.obj.zip`
-- `uniform_cantilever4.obj.zip`
-- `modal-8.stl.zip`
-- `uniform-8.stl.zip`
+- `geometry/modal_cantilever3_corrected.3mf`
+- `geometry/uniform_cantilever3_volume_matched.3mf`
+- `geometry/*_s0.5_thick_lattice_graph.3mf`
 
-공개 저장소이므로 GitHub 인증은 필요하지 않습니다. 기존 3번 모델의 최종 OBJ 실체 부피는 modal `83,319.77 mm³`, uniform `83,341.32 mm³`로 차이는 `0.026%`입니다. uniform 공통 반지름은 `0.806104 mm`입니다.
+8번 모델만 용량 때문에 `v1.0` Release의 `modal-8.stl.zip`, `uniform-8.stl.zip`을 자동 다운로드합니다. 공개 저장소이므로 GitHub 인증은 필요하지 않습니다.
 
 ## 8번 STL 모델
 
@@ -38,7 +35,7 @@ python .\run.py --cases modal-8 uniform-8
 python .\run_all_modal.py --cases modal-8 uniform-8 --prepare-only
 ```
 
-전체 모델은 인자 없이 실행합니다. 체적 메시의 기존 허용 오차(voxel 부피 15%, tetra 부피 10%)는 실패 감지 기준이지 정확도 보증이 아닙니다. 주파수 비교에는 두 모델의 실제 체적 메시 부피와 요소 크기 수렴을 별도로 확인해야 합니다.
+전체 모델은 인자 없이 실행합니다. 3MF voxel 쌍은 부피 차이 1%, 최종 tetra는 목표 부피 차이 3%를 넘으면 실패합니다. 주파수 비교에는 요소 크기 수렴을 별도로 확인해야 합니다.
 
 ## 실행
 
@@ -58,7 +55,7 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 
 `run.py`가 다음 작업을 순서대로 수행합니다.
 
-1. OBJ/Binary STL을 pygalmesh TET4 volume mesh로 변환
+1. 3MF graph 또는 Binary STL을 voxel union → pygalmesh/CGAL TET4로 변환
 2. edge 중간 절점을 추가해 SOLID187 TET10 CDB 생성
 3. 각 형상에서 whitened `ν=0.30`, `ν=0.39` 두 번만 해석
 4. `sqrt(E/ρ)` scaling으로 네 재료의 주파수 생성
@@ -73,15 +70,22 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 
 ANSYS 기준 물성은 `E=1 MPa`, `ρ=1 tonne/mm³`이며 포아송비별로 해석합니다. 같은 포아송비의 실제 주파수는 `f = f_white × sqrt(E/ρ)`로 계산합니다. 경계조건은 없는 true free-free입니다. 추출된 12개 모드 중 1–6차는 강체 모드, 7–12차는 탄성 고유진동 `f1–f6`입니다.
 
-## s0.5 nTop thick graph
+## 3MF 직접 voxel 부피 검증
 
-두 CSV 그래프를 nTop에서 가져올 수 있는 3MF beam-lattice/ball thick graph로 변환합니다.
+3MF의 butt-cap beam과 node ball을 직접 raster union합니다. 중간 surface가 없어 watertight/self-intersection 문제에 의존하지 않습니다.
+
+| 쌍 | Modal voxel (mm³) | Uniform voxel (mm³) | 차이 |
+|---|---:|---:|---:|
+| 3 | 86,399.552 | 86,428.912 | 0.034% |
+| 4 | 10,805.797 | 10,813.515 | 0.071% |
+
+최소 스트럿 지름은 modal에서 4 voxel, uniform에서 8 voxel 이상입니다. Modal은 voxel 간격을 한 번 더 절반으로 줄였을 때 부피 변화가 3번 `0.071%`, 4번 `0.138%`였습니다. 주기적인 uniform 격자는 5개 sub-voxel offset으로 aliasing을 확인한 뒤 반지름을 각각 `1.015`, `1.005`배 보정했습니다. 해석 시 유효 uniform 반지름은 3번 `0.818196 mm`, 4번 `0.413683 mm`입니다. 이는 부피 수렴 검증이며 주파수 mesh 수렴 검증은 아닙니다.
+
+CSV에서 4번 3MF를 다시 만들려면:
 
 ```powershell
 python .\csv_to_thick_graph_3mf.py
 ```
-
-출력은 `geometry/*_s0.5_thick_lattice_graph.3mf`입니다. 설계 모델 반지름 범위는 `0.25000–0.55201 mm`, 최종 uniform 공통 반지름은 `0.411625 mm`입니다. 최종 OBJ 실체 부피는 modal `10,658.24 mm³`, uniform `10,657.99 mm³`로 차이는 `0.0023%`입니다.
 
 ## 3D 프린팅용 경량 OBJ
 
