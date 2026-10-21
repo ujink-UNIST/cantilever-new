@@ -1,6 +1,6 @@
 # cantilever-new
 
-`modal3/uniform3`, `modal4/uniform4`, `modal8/uniform8` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, 세 재료의 무구속 free-free modal 해석을 실행합니다.
+`modal3/uniform3`, `modal4/uniform4`, `modal8/uniform8` 형상을 pygalmesh volume mesh → ANSYS SOLID187 TET10으로 변환하고, EOS MaragingSteel MS1의 무구속 free-free modal 해석을 실행합니다.
 
 ## 입력 형상
 
@@ -32,7 +32,7 @@ OBJ/STL 모델은 용량 때문에 Git 저장소가 아닌 `v1.0` Release에 압
 python .\run.py --cases modal-8 uniform-8
 ```
 
-실제 해석 없이 8번 세 재료 입력 파일만 생성:
+실제 해석 없이 8번 MS1 입력 파일만 생성:
 
 ```powershell
 python .\run_all_modal.py --cases modal-8 uniform-8 --prepare-only
@@ -60,7 +60,7 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 
 1. OBJ/Binary STL을 pygalmesh TET4 volume mesh로 변환
 2. edge 중간 절점을 추가해 SOLID187 TET10 CDB 생성
-3. `runs/`에서 Inconel 718, Structural Steel, Formlabs Nylon 12 해석
+3. `runs/`에서 EOS MaragingSteel MS1 (`E=180 GPa`, `ν=0.30`, `ρ=8,100 kg/m³`) 해석
 4. `runs/free_free_modal_frequencies_all.csv` 저장
 
 경계조건은 없는 true free-free입니다. 추출된 12개 모드 중 1–6차는 강체 모드, 7–12차는 탄성 고유진동 `f1–f6`입니다.
