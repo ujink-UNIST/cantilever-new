@@ -81,11 +81,17 @@ ANSYS 기준 물성은 `E=1 MPa`, `ρ=1 tonne/mm³`이며 포아송비별로 해
 
 최소 스트럿 지름은 modal에서 4 voxel, uniform에서 8 voxel 이상입니다. Modal은 voxel 간격을 한 번 더 절반으로 줄였을 때 부피 변화가 3번 `0.071%`, 4번 `0.138%`였습니다. 주기적인 uniform 격자는 5개 sub-voxel offset으로 aliasing을 확인한 뒤 반지름을 각각 `1.015`, `1.005`배 보정했습니다. 해석 시 유효 uniform 반지름은 3번 `0.818196 mm`, 4번 `0.413683 mm`입니다. 이는 부피 수렴 검증이며 주파수 mesh 수렴 검증은 아닙니다.
 
-직접 voxel union의 폐쇄 외벽 STL을 추출하려면:
+### 연속 implicit field → marching-cubes 계열 표면
+
+STL 추출은 같은 격자 간격에서 0/1 occupancy 대신 beam/ball의 연속 거리 field를 사용합니다. `min`으로 union한 뒤 VTK FlyingEdges3D로 0 등위면을 보간합니다. 원통은 flat cap을 유지하며 smoothing이나 반지름 재보정은 하지 않습니다. 현재 CGAL volume 해석 경로는 기존 occupancy 방식 그대로입니다.
 
 ```powershell
+conda env update -f environment.yml
 python .\export_voxel_surface.py modal_cantilever4
+python .\test_implicit_surface.py
 ```
+
+출력: `geometry/modal_cantilever4_implicit_surface.stl`. `0.125 mm` 격자에서 7,966,408 triangles, 부피 `10,823.804 mm³` (기준 voxel 대비 `+0.167%`)입니다. 폐쇄 edge-manifold, 연결 표면 1개, PyMeshLab self-intersection 0 faces를 확인했습니다. 검증에 실패하면 STL을 저장하지 않습니다. 기존 `*_direct_voxel_surface.stl`은 비교용으로 유지합니다.
 
 CSV에서 4번 3MF를 다시 만들려면:
 

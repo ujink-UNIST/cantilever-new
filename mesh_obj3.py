@@ -105,15 +105,22 @@ def graph_primitives(source: Path):
 def voxelize_graph(
     source: Path, voxel: float, reference_volume: float,
     radius_scale: float = 1.0, offsets: np.ndarray = OFFSETS,
+    *, implicit: bool = False,
 ):
+    if not np.isfinite(voxel) or voxel <= 0 or not np.isfinite(radius_scale) or radius_scale <= 0:
+        raise ValueError("Voxel size and radius scale must be positive and finite")
     points, beams, balls = graph_primitives(source)
     beams[:, 2:] *= radius_scale
     balls[:, 1] *= radius_scale
     max_radius = max(beams[:, 2:].max(), balls[:, 1].max())
     lower = np.floor((points.min(axis=0) - max_radius) / voxel) * voxel
     upper = points.max(axis=0) + max_radius
+    band = 2 * voxel if implicit else 0.0
+    lower -= band
+    upper += band
     shape = np.ceil((upper - lower) / voxel).astype(int)
-    solid = np.zeros(tuple(shape), dtype=bool)
+    # ponytail: a two-cell distance band covers zero crossings; widen for offset surfaces.
+    solid = np.full(tuple(shape), band, dtype=np.float32) if implicit else np.zeros(tuple(shape), dtype=bool)
 
     def index_bounds(minimum, maximum):
         begin = np.ceil((minimum - lower) / voxel - offsets).astype(int)
@@ -132,7 +139,7 @@ def voxelize_graph(
         length_squared = axis @ axis
         if length_squared <= 0:
             raise ValueError("Zero-length 3MF beam")
-        radius = max(r1, r2)
+        radius = max(r1, r2) + band
         begin, finish = index_bounds(np.minimum(start, end) - radius, np.maximum(start, end) + radius)
         x, y, z = coordinates(begin, finish)
         dx = x[:, None, None] - start[0]
@@ -142,29 +149,43 @@ def voxelize_graph(
         fraction = projection / length_squared
         local_radius = r1 + (r2 - r1) * fraction
         distance_squared = dx * dx + dy * dy + dz * dz - projection * projection / length_squared
-        inside = (
-            (projection >= 0) & (projection <= length_squared)
-            & (distance_squared <= local_radius * local_radius)
-        )
         slices = tuple(slice(begin[axis], finish[axis]) for axis in range(3))
-        solid[slices] |= inside
+        if implicit:
+            length = np.sqrt(length_squared)
+            radial = (np.sqrt(np.maximum(distance_squared, 0)) - local_radius) / np.sqrt(
+                1 + (r2 - r1) ** 2 / length_squared
+            )
+            cap = np.maximum(-projection, projection - length_squared) / length
+            # Exact capped-cylinder SDF for r1=r2; sign-correct field for tapered beams.
+            distance = np.hypot(np.maximum(radial, 0), np.maximum(cap, 0)) + np.minimum(
+                np.maximum(radial, cap), 0
+            )
+            np.minimum(solid[slices], distance, out=solid[slices])
+        else:
+            inside = (
+                (projection >= 0) & (projection <= length_squared)
+                & (distance_squared <= local_radius * local_radius)
+            )
+            solid[slices] |= inside
         if number % 1000 == 0 or number == len(beams):
             print(f"Rasterized {number:,}/{len(beams):,} beams", flush=True)
 
     for vindex, radius in balls:
         center = points[int(vindex)]
-        begin, finish = index_bounds(center - radius, center + radius)
+        begin, finish = index_bounds(center - radius - band, center + radius + band)
         x, y, z = coordinates(begin, finish)
-        inside = (
+        distance_squared = (
             (x[:, None, None] - center[0]) ** 2
             + (y[None, :, None] - center[1]) ** 2
             + (z[None, None, :] - center[2]) ** 2
-            <= radius * radius
         )
         slices = tuple(slice(begin[axis], finish[axis]) for axis in range(3))
-        solid[slices] |= inside
+        if implicit:
+            np.minimum(solid[slices], np.sqrt(distance_squared) - radius, out=solid[slices])
+        else:
+            solid[slices] |= distance_squared <= radius * radius
 
-    voxel_volume = int(solid.sum()) * voxel**3
+    voxel_volume = int(np.count_nonzero(solid < 0) if implicit else solid.sum()) * voxel**3
     difference = abs(voxel_volume - reference_volume) / reference_volume
     print(
         f"3MF target/voxel volume: {reference_volume:.3f}/{voxel_volume:.3f} mm^3 "
@@ -172,8 +193,8 @@ def voxelize_graph(
         f"{len(points):,} vertices, {len(beams):,} beams, {len(balls):,} balls"
     )
     if difference > 0.01:
-        raise RuntimeError(f"Voxel volume differs from the validated nTop volume by {difference:.3%}")
-    return solid.astype(np.uint8), lower, reference_volume
+        raise RuntimeError(f"Sampled volume differs from the reference target by {difference:.3%}")
+    return solid if implicit else solid.astype(np.uint8), lower, reference_volume
 
 
 def surface_triangles(source: Path):

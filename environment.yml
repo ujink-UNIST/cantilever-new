@@ -8,3 +8,5 @@ dependencies:
   - pygalmesh
   - fast-simplification
   - pymeshfix
+  - vtk
+  - pymeshlab
