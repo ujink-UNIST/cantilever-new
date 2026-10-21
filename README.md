@@ -81,6 +81,12 @@ ANSYS 기준 물성은 `E=1 MPa`, `ρ=1 tonne/mm³`이며 포아송비별로 해
 
 최소 스트럿 지름은 modal에서 4 voxel, uniform에서 8 voxel 이상입니다. Modal은 voxel 간격을 한 번 더 절반으로 줄였을 때 부피 변화가 3번 `0.071%`, 4번 `0.138%`였습니다. 주기적인 uniform 격자는 5개 sub-voxel offset으로 aliasing을 확인한 뒤 반지름을 각각 `1.015`, `1.005`배 보정했습니다. 해석 시 유효 uniform 반지름은 3번 `0.818196 mm`, 4번 `0.413683 mm`입니다. 이는 부피 수렴 검증이며 주파수 mesh 수렴 검증은 아닙니다.
 
+직접 voxel union의 폐쇄 외벽 STL을 추출하려면:
+
+```powershell
+python .\export_voxel_surface.py modal_cantilever4
+```
+
 CSV에서 4번 3MF를 다시 만들려면:
 
 ```powershell
