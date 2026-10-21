@@ -3,7 +3,9 @@ from __future__ import annotations
 import argparse
 import re
 import struct
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from zipfile import ZipFile
 
 import numpy as np
 
@@ -19,17 +21,159 @@ SCALES = {
     "uniform-8": 1.0,
 }
 VOXELS = {
-    "modal_cantilever3": 0.25,
-    "uniform_cantilever3": 0.25,
+    "modal_cantilever3": 0.2,
+    "uniform_cantilever3": 0.2,
     "modal_cantilever4": 0.125,
-    "uniform_cantilever4": 0.2,
+    "uniform_cantilever4": 0.1,
     "modal-8": 0.2,
     "uniform-8": 0.2,
 }
 PAD = 2
 OFFSETS = np.array([0.419, 0.371, 0.583])  # Avoid rays through source edges.
+GRAPH_OFFSETS = {
+    "modal_cantilever3": np.array([0.547, 0.673, 0.293]),
+    "uniform_cantilever3": np.array([0.547, 0.673, 0.293]),
+    "modal_cantilever4": np.array([0.389, 0.811, 0.137]),
+    "uniform_cantilever4": np.array([0.389, 0.811, 0.137]),
+}
+RADIUS_SCALES = {"uniform_cantilever3": 1.015, "uniform_cantilever4": 1.005}
 FACE_BLOCK = 500_000
 STL_DTYPE = np.dtype([("normal", "<f4", (3,)), ("vertices", "<f4", (3, 3)), ("attribute", "<u2")])
+CORE = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+BEAM = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02"
+BALL = "http://schemas.microsoft.com/3dmanufacturing/beamlattice/balls/2020/07"
+REFERENCE_VOLUMES = {
+    "modal_cantilever3": 86399.552,
+    "uniform_cantilever3": 86399.552,
+    "modal_cantilever4": 10805.796875,
+    "uniform_cantilever4": 10805.796875,
+}
+
+
+def graph_primitives(source: Path):
+    with ZipFile(source) as archive:
+        models = [name for name in archive.namelist() if name.lower().endswith(".model")]
+        if len(models) != 1:
+            raise ValueError(f"Expected one 3MF model, found {len(models)}")
+        model = ET.fromstring(archive.read(models[0]))
+    if model.get("unit", "millimeter") != "millimeter":
+        raise ValueError("Only millimeter 3MF models are supported")
+    objects = model.findall(f".//{{{CORE}}}object")
+    if len(objects) != 1:
+        raise ValueError(f"Expected one 3MF object, found {len(objects)}")
+    obj = objects[0]
+    item = model.find(f".//{{{CORE}}}item")
+    if item is None or item.get("transform") is not None:
+        raise ValueError("Expected one untransformed 3MF build item")
+    vertices = obj.findall(f".//{{{CORE}}}vertex")
+    points = np.array(
+        [[float(vertex.get(axis)) for axis in "xyz"] for vertex in vertices], dtype=np.float64
+    )
+    lattice = obj.find(f".//{{{BEAM}}}beamlattice")
+    if lattice is None or lattice.get("cap", "sphere") != "butt":
+        raise ValueError("Expected a butt-cap 3MF beam lattice")
+    default_radius = float(lattice.get("radius"))
+    beams = np.array(
+        [
+            [
+                int(beam.get("v1")), int(beam.get("v2")),
+                float(beam.get("r1", default_radius)), float(beam.get("r2", default_radius)),
+            ]
+            for beam in lattice.findall(f".//{{{BEAM}}}beam")
+        ],
+        dtype=np.float64,
+    )
+    default_ball_radius = float(lattice.get(f"{{{BALL}}}ballradius", default_radius))
+    balls = np.array(
+        [
+            [int(ball.get("vindex")), float(ball.get("r", default_ball_radius))]
+            for ball in lattice.findall(f".//{{{BALL}}}ball")
+        ],
+        dtype=np.float64,
+    )
+    if (
+        points.ndim != 2 or points.shape[1] != 3 or not len(beams) or not len(balls)
+        or not np.isfinite(points).all() or not np.isfinite(beams).all() or not np.isfinite(balls).all()
+        or beams[:, :2].min() < 0 or beams[:, :2].max() >= len(points)
+        or balls[:, 0].min() < 0 or balls[:, 0].max() >= len(points)
+        or beams[:, 2:].min() <= 0 or balls[:, 1].min() <= 0
+    ):
+        raise ValueError("Invalid 3MF beam or ball data")
+    return points, beams, balls
+
+
+def voxelize_graph(
+    source: Path, voxel: float, reference_volume: float,
+    radius_scale: float = 1.0, offsets: np.ndarray = OFFSETS,
+):
+    points, beams, balls = graph_primitives(source)
+    beams[:, 2:] *= radius_scale
+    balls[:, 1] *= radius_scale
+    max_radius = max(beams[:, 2:].max(), balls[:, 1].max())
+    lower = np.floor((points.min(axis=0) - max_radius) / voxel) * voxel
+    upper = points.max(axis=0) + max_radius
+    shape = np.ceil((upper - lower) / voxel).astype(int)
+    solid = np.zeros(tuple(shape), dtype=bool)
+
+    def index_bounds(minimum, maximum):
+        begin = np.ceil((minimum - lower) / voxel - offsets).astype(int)
+        end = np.floor((maximum - lower) / voxel - offsets).astype(int) + 1
+        return np.maximum(begin, 0), np.minimum(end, shape)
+
+    def coordinates(begin, end):
+        return [
+            lower[axis] + (np.arange(begin[axis], end[axis]) + offsets[axis]) * voxel
+            for axis in range(3)
+        ]
+
+    for number, (v1, v2, r1, r2) in enumerate(beams, 1):
+        start, end = points[int(v1)], points[int(v2)]
+        axis = end - start
+        length_squared = axis @ axis
+        if length_squared <= 0:
+            raise ValueError("Zero-length 3MF beam")
+        radius = max(r1, r2)
+        begin, finish = index_bounds(np.minimum(start, end) - radius, np.maximum(start, end) + radius)
+        x, y, z = coordinates(begin, finish)
+        dx = x[:, None, None] - start[0]
+        dy = y[None, :, None] - start[1]
+        dz = z[None, None, :] - start[2]
+        projection = dx * axis[0] + dy * axis[1] + dz * axis[2]
+        fraction = projection / length_squared
+        local_radius = r1 + (r2 - r1) * fraction
+        distance_squared = dx * dx + dy * dy + dz * dz - projection * projection / length_squared
+        inside = (
+            (projection >= 0) & (projection <= length_squared)
+            & (distance_squared <= local_radius * local_radius)
+        )
+        slices = tuple(slice(begin[axis], finish[axis]) for axis in range(3))
+        solid[slices] |= inside
+        if number % 1000 == 0 or number == len(beams):
+            print(f"Rasterized {number:,}/{len(beams):,} beams", flush=True)
+
+    for vindex, radius in balls:
+        center = points[int(vindex)]
+        begin, finish = index_bounds(center - radius, center + radius)
+        x, y, z = coordinates(begin, finish)
+        inside = (
+            (x[:, None, None] - center[0]) ** 2
+            + (y[None, :, None] - center[1]) ** 2
+            + (z[None, None, :] - center[2]) ** 2
+            <= radius * radius
+        )
+        slices = tuple(slice(begin[axis], finish[axis]) for axis in range(3))
+        solid[slices] |= inside
+
+    voxel_volume = int(solid.sum()) * voxel**3
+    difference = abs(voxel_volume - reference_volume) / reference_volume
+    print(
+        f"3MF target/voxel volume: {reference_volume:.3f}/{voxel_volume:.3f} mm^3 "
+        f"({difference:.3%}); radius scale {radius_scale:.6f}; "
+        f"{len(points):,} vertices, {len(beams):,} beams, {len(balls):,} balls"
+    )
+    if difference > 0.01:
+        raise RuntimeError(f"Voxel volume differs from the validated nTop volume by {difference:.3%}")
+    return solid.astype(np.uint8), lower, reference_volume
 
 
 def surface_triangles(source: Path):
@@ -151,13 +295,21 @@ def voxelize(source: Path, voxel: float):
     return solid, lower, abs(source_volume)
 
 
-def mesh_case(case: str) -> None:
-    import pygalmesh  # Needed only for tetrahedralization, not surface-reader checks.
-
+def mesh_case(case: str, voxel_only: bool = False) -> None:
     source = SOURCES[case]
-    output = ROOT / f"{source.stem}_volume.msh"
+    output = ROOT / f"{case}_volume.msh"
     scale, voxel = SCALES[case], VOXELS[case]
-    solid, lower, source_volume = voxelize(source, voxel)
+    offsets = GRAPH_OFFSETS.get(case, OFFSETS)
+    if source.suffix.lower() == ".3mf":
+        solid, lower, source_volume = voxelize_graph(
+            source, voxel, REFERENCE_VOLUMES[case], RADIUS_SCALES.get(case, 1.0), offsets
+        )
+    else:
+        solid, lower, source_volume = voxelize(source, voxel)
+    if voxel_only:
+        return
+
+    import pygalmesh  # Needed only for tetrahedralization, not voxel validation.
     mesh = pygalmesh.generate_from_array(
         np.pad(solid, PAD), (voxel,) * 3,
         min_facet_angle=25,
@@ -167,23 +319,30 @@ def mesh_case(case: str) -> None:
         max_cell_circumradius=1.0 * scale,
         verbose=True, seed=1,
     )
-    mesh.points += lower + (OFFSETS - PAD) * voxel
+    mesh.points += lower + (offsets - PAD) * voxel
     mesh.point_data.clear()
     mesh.cell_data.clear()
     tetra = mesh.get_cells_type("tetra")
     a, b, c, d = (mesh.points[tetra[:, i]] for i in range(4))
     mesh_volume = np.abs(np.einsum("ij,ij->i", b - a, np.cross(c - a, d - a))).sum() / 6
-    assert len(tetra) > 0
-    assert abs(mesh_volume - source_volume) / source_volume < 0.1
+    if not len(tetra):
+        raise RuntimeError("CGAL generated no tetrahedra")
+    volume_difference = abs(mesh_volume - source_volume) / source_volume
+    if volume_difference > 0.03:
+        raise RuntimeError(f"Tetra volume differs from the target by {volume_difference:.3%}")
     mesh.write(output, file_format="gmsh22", binary=True)
-    print(f"Wrote {output.name}: {len(mesh.points)} points, {len(tetra)} tetra, volume {mesh_volume:.1f}")
+    print(
+        f"Wrote {output.name}: {len(mesh.points)} points, {len(tetra)} tetra, "
+        f"volume {mesh_volume:.1f} ({volume_difference:.3%} from target)"
+    )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Voxelize and tetrahedralize a binary STL or triangle OBJ.")
+    parser = argparse.ArgumentParser(description="Voxelize and tetrahedralize a 3MF beam graph or binary STL.")
     parser.add_argument("case", choices=SOURCES)
+    parser.add_argument("--voxel-only", action="store_true", help="validate voxel volume without CGAL")
     args = parser.parse_args()
-    mesh_case(args.case)
+    mesh_case(args.case, args.voxel_only)
 
 
 if __name__ == "__main__":
