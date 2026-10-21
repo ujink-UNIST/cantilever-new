@@ -157,9 +157,15 @@ def main() -> None:
         frequency_path = RUNS / f"{name}_frequencies.csv"
         result_path = RUNS / f"{name}.rst"
         lock_path = RUNS / f"{name}.lock"
+        cdb_path = ROOT / f"{STEMS[meshcase - 1]}_ansys_tet10.cdb"
         if lock_path.exists():
             raise RuntimeError(f"{lock_path.name} exists; stop MAPDL and remove the stale lock")
-        if frequency_path.is_file() and result_path.is_file():
+        result_is_current = (
+            frequency_path.is_file() and result_path.is_file()
+            and min(frequency_path.stat().st_mtime, result_path.stat().st_mtime)
+            >= max(input_path.stat().st_mtime, cdb_path.stat().st_mtime)
+        )
+        if result_is_current:
             try:
                 frequencies = read_frequencies(frequency_path)
             except RuntimeError:
