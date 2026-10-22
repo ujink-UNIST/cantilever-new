@@ -1,5 +1,5 @@
 ! TET10 fixed-free modal analysis with every x<=0 node fixed (mm, N, s, MPa)
-! MESHCASE: 1=modal3, 2=uniform3, 3=modal4, 4=uniform4, 5=modal8, 6=uniform8
+! MESHCASE: 1-6=legacy 3/4/8; 7/8=16_full, 9/10=16_half, 11/12=24_half (modal/uniform)
 ! MATCASE : 201=whitened nu=0.30, 202=whitened nu=0.39
 
 FINISH
@@ -21,9 +21,21 @@ MATCASE=201
   /INPUT,../modal-8_ansys_tet10,cdb
 *ELSEIF,MESHCASE,EQ,6,THEN
   /INPUT,../uniform-8_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,7,THEN
+  /INPUT,../modal16_full_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,8,THEN
+  /INPUT,../uniform16_full_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,9,THEN
+  /INPUT,../modal16_half_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,10,THEN
+  /INPUT,../uniform16_half_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,11,THEN
+  /INPUT,../modal24_half_ansys_tet10,cdb
+*ELSEIF,MESHCASE,EQ,12,THEN
+  /INPUT,../uniform24_half_ansys_tet10,cdb
 *ELSE
   /GOPR
-  /COM,ERROR: MESHCASE must be an integer from 1 to 6.
+  /COM,ERROR: MESHCASE must be an integer from 1 to 12.
   /EXIT,NOSAVE
 *ENDIF
 /GOPR

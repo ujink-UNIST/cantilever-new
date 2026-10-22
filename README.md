@@ -35,7 +35,7 @@ python .\run.py --cases modal-8 uniform-8
 python .\run_all_modal.py --cases modal-8 uniform-8 --prepare-only
 ```
 
-전체 모델은 인자 없이 실행합니다. 3MF voxel 쌍은 부피 차이 1%, 최종 tetra는 목표 부피 차이 3%를 넘으면 실패합니다. 주파수 비교에는 요소 크기 수렴을 별도로 확인해야 합니다.
+인자 없이 실행하면 새 symmetric modal/uniform 6개를 해석합니다. 기존 3/4/8번은 `--cases`로 지정할 수 있습니다. 최종 tetra 부피가 기준 부피와 3% 이상 다르면 실패합니다. 주파수 비교에는 요소 크기 수렴을 별도로 확인해야 합니다.
 
 ## 실행
 
@@ -83,7 +83,7 @@ ANSYS 기준 물성은 `E=1 MPa`, `ρ=1 tonne/mm³`이며 포아송비별로 해
 
 ### 연속 implicit field → marching-cubes 계열 표면
 
-STL 추출은 같은 격자 간격에서 0/1 occupancy 대신 beam/ball의 연속 거리 field를 사용합니다. `min`으로 union한 뒤 VTK FlyingEdges3D로 0 등위면을 보간합니다. 원통은 flat cap을 유지하며 smoothing이나 반지름 재보정은 하지 않습니다. 현재 CGAL volume 해석 경로는 기존 occupancy 방식 그대로입니다.
+STL 추출은 같은 격자 간격에서 0/1 occupancy 대신 beam/ball의 연속 거리 field를 사용합니다. `min`으로 union한 뒤 VTK FlyingEdges3D로 0 등위면을 보간합니다. 원통은 flat cap을 유지하며 smoothing이나 반지름 재보정은 하지 않습니다. 새 6개 모델의 volume mesh는 같은 field를 trilinear 보간한 `pygalmesh.DomainBase`로 직접 CGAL에 전달합니다. 따라서 해석용으로 수백 MB STL을 다시 읽거나 field를 0/1로 되돌리지 않습니다. 기존 3/4/8 모델의 volume 경로는 유지합니다.
 
 ```powershell
 conda env update -f environment.yml
@@ -109,7 +109,27 @@ python .\csv_to_thick_graph_3mf.py
 | 16 sym island iface5 s0.5 | 16×5×5 / 5 mm | 0.411729972 | 10,764.765 / 10,764.478 | 0.00266% |
 | 24 sym island iface5 s0.5 | 24×5×5 / 5 mm | 0.412720904 | 16,138.867 / 16,140.261 | 0.00864% |
 
-출력: `geometry/cantilever{16,24}_uniform5449_volume_matched_sym*.3mf`. 파일별 매칭, 격자 간격, 부피 및 SHA-256은 `geometry/new_uniform_volume_matches.json`에 기록했습니다. 각 최종 modal/uniform 표면에서 폐쇄 edge-manifold, 연결 표면 1개, self-intersection 0 faces를 확인했습니다. 이 세 쌍은 아직 `run.py`의 해석 목록에 추가하지 않았습니다.
+출력: `geometry/cantilever{16,24}_uniform5449_volume_matched_sym*.3mf`. 파일별 매칭, 격자 간격, 부피 및 SHA-256은 `geometry/new_uniform_volume_matches.json`에 기록했습니다. 각 최종 modal/uniform 표면에서 폐쇄 edge-manifold, 연결 표면 1개, self-intersection 0 faces를 확인했습니다.
+
+두 브랜치의 기본 해석 대상은 다음 6개입니다.
+
+- `modal16_full`, `uniform16_full`: 16×5×5셀, 셀 크기 10 mm
+- `modal16_half`, `uniform16_half`: 16×5×5셀, 셀 크기 5 mm
+- `modal24_half`, `uniform24_half`: 24×5×5셀, 셀 크기 5 mm
+
+각 브랜치에서 `python .\run.py`를 실행하면 형상 6개 × 포아송비 2개 = 12회 해석으로 네 재료의 24개 결과 행을 생성합니다. `main`은 free-free, `fixed-x-le-0`는 x≤0 고정입니다. 예를 들어 24셀 쌍만 실행하려면 `python .\run.py --cases modal24_half uniform24_half`를 사용합니다.
+
+STL 6개는 `geometry/{modal,uniform}{16_full,16_half,24_half}_implicit_surface.stl`이며, `v1.0` Release의 `symmetric_modal_uniform_6_stl.zip`에서도 받을 수 있습니다. 파일별 크기·삼각형 수·부피는 `geometry/new_matched_stl_manifest.json`에 기록했습니다. STL 자체는 단위 정보가 없으므로 mm로 가져옵니다.
+
+```powershell
+python .\export_voxel_surface.py --all-new
+python .\run_all_modal.py --prepare-only
+python .\test_new_modal_cases.py
+# CGAL이 설치된 환경에서 실제 작은 구 tetra 생성까지 확인:
+python .\test_new_modal_cases.py --cgal
+```
+
+로컬에서 STL 6개 생성/검증과 입력 deck 테스트를 완료했습니다. 새 field 경로의 실제 CGAL volume 생성과 ANSYS 해석 완료를 의미하지는 않습니다.
 
 ```powershell
 python .\match_uniform_3mf.py

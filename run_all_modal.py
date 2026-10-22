@@ -7,12 +7,12 @@ import os
 import subprocess
 from pathlib import Path
 
-from run import STEMS
+from run import STEMS, NEW_CASES
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
 TEMPLATE = ROOT / "run_fixed_xle0_modal.inp"
-MESHES = ("modal3", "uniform3", "modal4", "uniform4", "modal8", "uniform8")
+MESHES = ("modal3", "uniform3", "modal4", "uniform4", "modal8", "uniform8") + NEW_CASES
 CASES = [
     (meshcase, matcase, f"{mesh}_xle0_nu{nu}", mesh, f"whitened nu={poisson:.2f}")
     for meshcase, mesh in enumerate(MESHES, 1)
@@ -128,11 +128,11 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run x<=0 fixed cantilever3/4/8 cases using two whitened material solves.")
+    parser = argparse.ArgumentParser(description="Run selected x<=0 fixed models using two whitened material solves.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate input decks without MAPDL")
-    parser.add_argument("--cases", nargs="+", choices=STEMS, default=STEMS, help="Models to run; defaults to all")
+    parser.add_argument("--cases", nargs="+", choices=STEMS, default=NEW_CASES, help="Models to run; defaults to the six new matched graphs")
     args = parser.parse_args()
     RUNS.mkdir(exist_ok=True)
 

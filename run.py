@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -27,6 +28,15 @@ SOURCES = {
     "modal-8": ROOT / "modal-8.stl",
     "uniform-8": ROOT / "uniform-8.stl",
 }
+MATCH_REPORT = ROOT / "geometry/new_uniform_volume_matches.json"
+MATCHED_PAIRS = json.loads(MATCH_REPORT.read_text(encoding="utf-8"))
+NEW_CASES = tuple(
+    f"{kind}{pair}" for pair in ("16_full", "16_half", "24_half") for kind in ("modal", "uniform")
+)
+for pair in ("16_full", "16_half", "24_half"):
+    for kind in ("modal", "uniform"):
+        SOURCES[f"{kind}{pair}"] = ROOT / "geometry" / MATCHED_PAIRS[pair][kind]
+STEMS += NEW_CASES
 
 
 def stale(output: Path, *sources: Path) -> bool:
@@ -72,7 +82,7 @@ def main() -> None:
     )
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe; auto-detected if omitted")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
-    parser.add_argument("--cases", nargs="+", choices=STEMS, default=STEMS, help="Models to run; defaults to all")
+    parser.add_argument("--cases", nargs="+", choices=STEMS, default=NEW_CASES, help="Models to run; defaults to the six new matched graphs")
     args = parser.parse_args()
 
     for stem in args.cases:
@@ -80,6 +90,8 @@ def main() -> None:
         volume = ROOT / f"{stem}_volume.msh"
         cdb = ROOT / f"{stem}_ansys_tet10.cdb"
         mesh_inputs = (source, ROOT / "mesh_obj3.py") if source.suffix.lower() == ".3mf" else (source,)
+        if stem in NEW_CASES:
+            mesh_inputs += (MATCH_REPORT,)
         if stale(volume, *mesh_inputs):
             execute(sys.executable, "mesh_obj3.py", stem)
         else:
