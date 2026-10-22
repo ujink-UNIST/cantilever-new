@@ -99,6 +99,23 @@ CSV에서 4번 3MF를 다시 만들려면:
 python .\csv_to_thick_graph_3mf.py
 ```
 
+## 새 symmetric modal 3개와 부피 일치 uniform
+
+원본 `cantilever24_uniform5449_from_modal_s0.5.3mf`를 16/24셀로 맞추고 필요한 경우 좌표를 2배 확대했습니다. Modal 원본은 변경하지 않았습니다. 아래는 같은 격자의 연속 implicit 표면 부피 기준이며, 해석 시 별도의 기존 `RADIUS_SCALES`를 추가 적용하면 안 됩니다.
+
+| Modal 구분 | 셀 배열 / 셀 크기 | Uniform 반지름 (mm) | Modal / Uniform 부피 (mm³) | 차이 |
+|---|---|---:|---:|---:|
+| 16 sym iface5 | 16×5×5 / 10 mm | 0.832564067 | 87,937.789 / 87,933.366 | 0.00503% |
+| 16 sym island iface5 s0.5 | 16×5×5 / 5 mm | 0.411729972 | 10,764.765 / 10,764.478 | 0.00266% |
+| 24 sym island iface5 s0.5 | 24×5×5 / 5 mm | 0.412720904 | 16,138.867 / 16,140.261 | 0.00864% |
+
+출력: `geometry/cantilever{16,24}_uniform5449_volume_matched_sym*.3mf`. 파일별 매칭, 격자 간격, 부피 및 SHA-256은 `geometry/new_uniform_volume_matches.json`에 기록했습니다. 각 최종 modal/uniform 표면에서 폐쇄 edge-manifold, 연결 표면 1개, self-intersection 0 faces를 확인했습니다. 이 세 쌍은 아직 `run.py`의 해석 목록에 추가하지 않았습니다.
+
+```powershell
+python .\match_uniform_3mf.py
+python .\test_match_uniform_3mf.py
+```
+
 ## 3D 프린팅용 경량 OBJ
 
 Release의 `*_print.obj.zip`은 원본 대비 face 수를 약 90% 줄이고 MeshFix로 폐쇄·manifold 상태를 복구한 파일입니다.
