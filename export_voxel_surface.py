@@ -49,9 +49,14 @@ def implicit_surface(
     surface = contour.GetOutput()
     if not surface.GetNumberOfPolys():
         raise RuntimeError("No exterior surface was generated")
-    if not validate:
-        return surface  # Volume-only iterations; validate the final surface before publishing.
+    if validate:
+        validate_surface(surface)
+    return surface
 
+
+def validate_surface(surface: vtk.vtkPolyData) -> None:
+    if not surface.GetNumberOfPolys():
+        raise RuntimeError("No surface triangles")
     connectivity = vtk.vtkPolyDataConnectivityFilter()
     connectivity.SetInputData(surface)
     connectivity.SetExtractionModeToAllRegions()
@@ -70,7 +75,19 @@ def implicit_surface(
     intersections = meshset.current_mesh().selected_face_number()
     if intersections:
         raise RuntimeError(f"Generated surface has {intersections} self-intersecting faces")
-    return surface
+
+
+def write_stl(surface: vtk.vtkPolyData, output: Path) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(dir=output.parent) as folder:
+        staged = Path(folder) / output.name
+        writer = vtk.vtkSTLWriter()
+        writer.SetFileName(str(staged))
+        writer.SetFileTypeToBinary()
+        writer.SetInputData(surface)
+        if not writer.Write() or not staged.is_file() or staged.stat().st_size != 84 + 50 * surface.GetNumberOfPolys():
+            raise RuntimeError(f"Failed to write a complete binary STL: {output}")
+        staged.replace(output)
 
 
 def export(case: str, output: Path) -> None:
@@ -87,16 +104,7 @@ def export(case: str, output: Path) -> None:
     volume_difference = abs(mass.GetVolume() - target_volume) / target_volume
     if volume_difference > 0.03:
         raise RuntimeError(f"Surface volume differs from the reference target by {volume_difference:.3%}")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with TemporaryDirectory(dir=output.parent) as folder:
-        staged = Path(folder) / output.name
-        writer = vtk.vtkSTLWriter()
-        writer.SetFileName(str(staged))
-        writer.SetFileTypeToBinary()
-        writer.SetInputData(surface)
-        if not writer.Write() or not staged.is_file() or staged.stat().st_size != 84 + 50 * surface.GetNumberOfPolys():
-            raise RuntimeError(f"Failed to write a complete binary STL: {output}")
-        staged.replace(output)
+    write_stl(surface, output)
     print(
         f"Wrote {output}: {surface.GetNumberOfPoints():,} points, "
         f"{surface.GetNumberOfPolys():,} triangles, volume {mass.GetVolume():.3f} mm^3 "

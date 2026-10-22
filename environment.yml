@@ -10,3 +10,4 @@ dependencies:
   - pymeshfix
   - vtk
   - pymeshlab
+  - cadquery
