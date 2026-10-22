@@ -136,6 +136,26 @@ python .\match_uniform_3mf.py
 python .\test_match_uniform_3mf.py
 ```
 
+## STEP 고정부를 결합한 출력용 STL 6개
+
+`geometry/Support.step`에는 두 개의 solid가 있습니다. 50 mm 베이스는 `16_full` 두 모델에, 25 mm 베이스는 `16_half/24_half` 네 모델에 사용했습니다. STEP의 배치를 그대로 유지합니다: 고정부 `x=-10..0`, 격자 시작면 `x=0`. 접합부의 실제 solid overlap을 확인했으며 별도 이동·반지름 변경은 하지 않았습니다.
+
+STEP 고정부만 0.02 mm 공차로 tessellate한 뒤 signed-distance field로 변환하고, 격자 field와 union하여 하나의 STL을 생성합니다. 격자를 CAD로 변환하거나 tetra mesh를 생성하지 않습니다. 기존과 같은 격자 간격(큰 모델 0.2 mm, 작은 모델 0.125 mm)을 사용합니다.
+
+출력: `geometry/{modal,uniform}{16_full,16_half,24_half}_with_support.stl`. `v1.0` Release의 `symmetric_modal_uniform_6_with_support_stl.zip`에 STL 6개와 검증 보고서·미리보기를 포함했습니다.
+
+검증: STEP solid 유효성, 고정부 tessellation 부피 오차 0.2% 이내, 고정부 implicit 부피 오차 1% 이내, 접합부 양의 겹침, 최종 연결 표면 1개, boundary/non-manifold edge 0개, self-intersecting face 0개. 저장된 binary STL의 양의 signed volume과 원래 surface 부피 일치 및 SHA-256도 확인했습니다. 상세 값은 `geometry/supported_print_models.json`에 있습니다.
+
+접합부에서 제거되는 중복 부피가 모델마다 달라 **고정부를 포함한 총 부피는 기존 격자 부피 매칭과 별개**입니다. 출력용 파일만 추가했으며 해석용 3MF, 기본 해석 대상 및 고정 조건은 변경하지 않았습니다.
+
+```powershell
+conda env update -f environment.yml
+python .\export_supported_stl.py
+python .\test_supported_stl.py
+```
+
+![25/50 mm 고정부 결합 미리보기](geometry/supported_print_preview.png)
+
 ## 3D 프린팅용 경량 OBJ
 
 Release의 `*_print.obj.zip`은 원본 대비 face 수를 약 90% 줄이고 MeshFix로 폐쇄·manifold 상태를 복구한 파일입니다.
