@@ -16,7 +16,7 @@ from mesh_obj3 import (
     VOXELS,
     voxelize_graph,
 )
-from run import ROOT, SOURCES
+from run import ROOT, SOURCES, NEW_CASES
 
 CASES = tuple(case for case, source in SOURCES.items() if source.suffix.lower() == ".3mf")
 
@@ -100,7 +100,7 @@ def export(case: str, output: Path) -> None:
     print(
         f"Wrote {output}: {surface.GetNumberOfPoints():,} points, "
         f"{surface.GetNumberOfPolys():,} triangles, volume {mass.GetVolume():.3f} mm^3 "
-        f"({volume_difference:.3%} from voxel target); boundary/nonmanifold edges 0/0, "
+        f"({volume_difference:.3%} from reference target); boundary/nonmanifold edges 0/0, "
         "self-intersecting faces 0, one component"
     )
 
@@ -109,9 +109,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Extract a closed STL from a continuous 3MF implicit field.")
     parser.add_argument("case", choices=CASES, nargs="?", default="modal_cantilever4")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--all-new", action="store_true", help="Export all six new matched modal/uniform graphs")
     args = parser.parse_args()
-    output = args.output or ROOT / "geometry" / f"{args.case}_implicit_surface.stl"
-    export(args.case, output.resolve())
+    if args.all_new and args.output:
+        parser.error("--output is only available for a single model")
+    for case in NEW_CASES if args.all_new else (args.case,):
+        output = args.output or ROOT / "geometry" / f"{case}_implicit_surface.stl"
+        export(case, output.resolve())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import struct
 import xml.etree.ElementTree as ET
@@ -9,7 +10,7 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from run import SOURCES
+from run import SOURCES, MATCHED_PAIRS, NEW_CASES
 
 ROOT = Path(__file__).resolve().parent
 SCALES = {
@@ -48,6 +49,14 @@ REFERENCE_VOLUMES = {
     "modal_cantilever4": 10805.796875,
     "uniform_cantilever4": 10805.796875,
 }
+for pair in ("16_full", "16_half", "24_half"):
+    matched = MATCHED_PAIRS[pair]
+    for kind in ("modal", "uniform"):
+        case = f"{kind}{pair}"
+        SCALES[case] = matched["cell_size_mm"] / 10.0
+        VOXELS[case] = matched["grid_mm"]
+        GRAPH_OFFSETS[case] = np.array(matched["offsets"])
+        REFERENCE_VOLUMES[case] = matched[f"{kind}_surface_volume_mm3"]
 
 
 def graph_primitives(source: Path):
@@ -186,14 +195,15 @@ def voxelize_graph(
             solid[slices] |= distance_squared <= radius * radius
 
     voxel_volume = int(np.count_nonzero(solid < 0) if implicit else solid.sum()) * voxel**3
+    label = "Field sign-count estimate" if implicit else "3MF sampled volume"
     print(
-        f"3MF sampled volume: {voxel_volume:.3f} mm^3; radius scale {radius_scale:.6f}; "
+        f"{label}: {voxel_volume:.3f} mm^3; radius scale {radius_scale:.6f}; "
         f"{len(points):,} vertices, {len(beams):,} beams, {len(balls):,} balls"
     )
     if reference_volume is not None:
         difference = abs(voxel_volume - reference_volume) / reference_volume
-        print(f"Target {reference_volume:.3f} mm^3; sampled difference {difference:.3%}")
-        if difference > 0.01:
+        print(f"Reference {reference_volume:.3f} mm^3; sign-count difference {difference:.3%}")
+        if not implicit and difference > 0.01:
             raise RuntimeError(f"Sampled volume differs from the reference target by {difference:.3%}")
     return solid if implicit else solid.astype(np.uint8), lower, reference_volume
 
@@ -317,6 +327,48 @@ def voxelize(source: Path, voxel: float):
     return solid, lower, abs(source_volume)
 
 
+def interpolate_field(field: np.ndarray, point, origin, spacing: float) -> float:
+    """Trilinear level set, positive outside the sampled grid (no extrapolation)."""
+    x, y, z = ((float(point[i]) - origin[i]) / spacing for i in range(3))
+    ix, iy, iz = math.floor(x), math.floor(y), math.floor(z)
+    nx, ny, nz = field.shape
+    if ix < 0 or iy < 0 or iz < 0 or ix >= nx - 1 or iy >= ny - 1 or iz >= nz - 1:
+        return 2 * spacing
+    x, y, z = x - ix, y - iy, z - iz
+    c00 = field[ix, iy, iz] * (1 - x) + field[ix + 1, iy, iz] * x
+    c10 = field[ix, iy + 1, iz] * (1 - x) + field[ix + 1, iy + 1, iz] * x
+    c01 = field[ix, iy, iz + 1] * (1 - x) + field[ix + 1, iy, iz + 1] * x
+    c11 = field[ix, iy + 1, iz + 1] * (1 - x) + field[ix + 1, iy + 1, iz + 1] * x
+    return float(((1 - y) * c00 + y * c10) * (1 - z) + ((1 - y) * c01 + y * c11) * z)
+
+
+def mesh_implicit_field(field: np.ndarray, voxel: float, scale: float):
+    import pygalmesh
+
+    # Center CGAL's bounding sphere on the grid rather than on the global origin.
+    origin = tuple(-(np.array(field.shape) - 1) * voxel / 2)
+
+    # ponytail: Python callbacks keep RAM bounded; move interpolation to C++ if meshing is too slow.
+    class FieldDomain(pygalmesh.DomainBase):
+        def __init__(self):
+            super().__init__()
+
+        def eval(self, point):
+            return interpolate_field(field, point, origin, voxel)
+
+        def get_bounding_sphere_squared_radius(self):
+            return float(sum(value * value for value in origin) * 1.01)
+
+    return pygalmesh.generate_mesh(
+        FieldDomain(), min_facet_angle=25,
+        max_radius_surface_delaunay_ball=0.75 * scale,
+        max_facet_distance=0.1 * scale,
+        max_circumradius_edge_ratio=3,
+        max_cell_circumradius=1.0 * scale,
+        verbose=True, seed=1,
+    ), np.array(origin)
+
+
 def mesh_case(case: str, voxel_only: bool = False) -> None:
     source = SOURCES[case]
     output = ROOT / f"{case}_volume.msh"
@@ -324,24 +376,30 @@ def mesh_case(case: str, voxel_only: bool = False) -> None:
     offsets = GRAPH_OFFSETS.get(case, OFFSETS)
     if source.suffix.lower() == ".3mf":
         solid, lower, source_volume = voxelize_graph(
-            source, voxel, REFERENCE_VOLUMES[case], RADIUS_SCALES.get(case, 1.0), offsets
+            source, voxel, REFERENCE_VOLUMES[case], RADIUS_SCALES.get(case, 1.0), offsets,
+            implicit=case in NEW_CASES,
         )
     else:
         solid, lower, source_volume = voxelize(source, voxel)
     if voxel_only:
         return
 
-    import pygalmesh  # Needed only for tetrahedralization, not voxel validation.
-    mesh = pygalmesh.generate_from_array(
-        np.pad(solid, PAD), (voxel,) * 3,
-        min_facet_angle=25,
-        max_radius_surface_delaunay_ball=0.75 * scale,
-        max_facet_distance=0.1 * scale,
-        max_circumradius_edge_ratio=3,
-        max_cell_circumradius=1.0 * scale,
-        verbose=True, seed=1,
-    )
-    mesh.points += lower + (offsets - PAD) * voxel
+    if case in NEW_CASES:
+        # Use the continuous field used for volume matching/STL, not its 0/1 mask.
+        mesh, centered_origin = mesh_implicit_field(solid, voxel, scale)
+        mesh.points += lower + offsets * voxel - centered_origin
+    else:
+        import pygalmesh  # Needed only for tetrahedralization, not voxel validation.
+        mesh = pygalmesh.generate_from_array(
+            np.pad(solid, PAD), (voxel,) * 3,
+            min_facet_angle=25,
+            max_radius_surface_delaunay_ball=0.75 * scale,
+            max_facet_distance=0.1 * scale,
+            max_circumradius_edge_ratio=3,
+            max_cell_circumradius=1.0 * scale,
+            verbose=True, seed=1,
+        )
+        mesh.points += lower + (offsets - PAD) * voxel
     mesh.point_data.clear()
     mesh.cell_data.clear()
     tetra = mesh.get_cells_type("tetra")

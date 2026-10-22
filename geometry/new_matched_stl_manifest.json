@@ -1,0 +1,68 @@
+{
+  "modal16_full": {
+    "file": "modal16_full_implicit_surface.stl",
+    "source_3mf": "cantilever16_mo_w0.50_dia1.0_sym_iface5_from_modal.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 12419652,
+    "bytes": 620982684,
+    "signed_volume_mm3": 87937.78911842099,
+    "reference_surface_volume_mm3": 87937.78911844188,
+    "grid_mm": 0.2,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  },
+  "uniform16_full": {
+    "file": "uniform16_full_implicit_surface.stl",
+    "source_3mf": "cantilever16_uniform5449_volume_matched_sym_iface5_from_modal.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 12669188,
+    "bytes": 633459484,
+    "signed_volume_mm3": 87933.36601326932,
+    "reference_surface_volume_mm3": 87933.36601328102,
+    "grid_mm": 0.2,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  },
+  "modal16_half": {
+    "file": "modal16_half_implicit_surface.stl",
+    "source_3mf": "cantilever16_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 7819556,
+    "bytes": 390977884,
+    "signed_volume_mm3": 10764.764745987643,
+    "reference_surface_volume_mm3": 10764.764745974691,
+    "grid_mm": 0.125,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  },
+  "uniform16_half": {
+    "file": "uniform16_half_implicit_surface.stl",
+    "source_3mf": "cantilever16_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 8251972,
+    "bytes": 412598684,
+    "signed_volume_mm3": 10764.477961913886,
+    "reference_surface_volume_mm3": 10764.477961947734,
+    "grid_mm": 0.125,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  },
+  "modal24_half": {
+    "file": "modal24_half_implicit_surface.stl",
+    "source_3mf": "cantilever24_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 11122836,
+    "bytes": 556141884,
+    "signed_volume_mm3": 16138.867170780739,
+    "reference_surface_volume_mm3": 16138.867170774705,
+    "grid_mm": 0.125,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  },
+  "uniform24_half": {
+    "file": "uniform24_half_implicit_surface.stl",
+    "source_3mf": "cantilever24_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "coordinates_unit": "mm (STL itself is unitless)",
+    "triangles": 12301092,
+    "bytes": 615054684,
+    "signed_volume_mm3": 16140.260974900753,
+    "reference_surface_volume_mm3": 16140.260974946013,
+    "grid_mm": 0.125,
+    "checks": "one connected surface, boundary edges=0, nonmanifold edges=0, self-intersecting faces=0"
+  }
+}
