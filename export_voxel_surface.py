@@ -32,7 +32,9 @@ def edge_count(surface: vtk.vtkPolyData, *, boundary: bool = False, nonmanifold:
     return edges.GetOutput().GetNumberOfCells()
 
 
-def implicit_surface(field: np.ndarray, lower: np.ndarray, voxel: float, offsets: np.ndarray):
+def implicit_surface(
+    field: np.ndarray, lower: np.ndarray, voxel: float, offsets: np.ndarray, *, validate: bool = True,
+):
     image = vtk.vtkImageData()
     image.SetDimensions(*field.shape)
     image.SetSpacing(voxel, voxel, voxel)
@@ -47,6 +49,8 @@ def implicit_surface(field: np.ndarray, lower: np.ndarray, voxel: float, offsets
     surface = contour.GetOutput()
     if not surface.GetNumberOfPolys():
         raise RuntimeError("No exterior surface was generated")
+    if not validate:
+        return surface  # Volume-only iterations; validate the final surface before publishing.
 
     connectivity = vtk.vtkPolyDataConnectivityFilter()
     connectivity.SetInputData(surface)

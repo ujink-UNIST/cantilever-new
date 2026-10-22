@@ -103,7 +103,7 @@ def graph_primitives(source: Path):
 
 
 def voxelize_graph(
-    source: Path, voxel: float, reference_volume: float,
+    source: Path, voxel: float, reference_volume: float | None,
     radius_scale: float = 1.0, offsets: np.ndarray = OFFSETS,
     *, implicit: bool = False,
 ):
@@ -186,14 +186,15 @@ def voxelize_graph(
             solid[slices] |= distance_squared <= radius * radius
 
     voxel_volume = int(np.count_nonzero(solid < 0) if implicit else solid.sum()) * voxel**3
-    difference = abs(voxel_volume - reference_volume) / reference_volume
     print(
-        f"3MF target/voxel volume: {reference_volume:.3f}/{voxel_volume:.3f} mm^3 "
-        f"({difference:.3%}); radius scale {radius_scale:.6f}; "
+        f"3MF sampled volume: {voxel_volume:.3f} mm^3; radius scale {radius_scale:.6f}; "
         f"{len(points):,} vertices, {len(beams):,} beams, {len(balls):,} balls"
     )
-    if difference > 0.01:
-        raise RuntimeError(f"Sampled volume differs from the reference target by {difference:.3%}")
+    if reference_volume is not None:
+        difference = abs(voxel_volume - reference_volume) / reference_volume
+        print(f"Target {reference_volume:.3f} mm^3; sampled difference {difference:.3%}")
+        if difference > 0.01:
+            raise RuntimeError(f"Sampled volume differs from the reference target by {difference:.3%}")
     return solid if implicit else solid.astype(np.uint8), lower, reference_volume
 
 

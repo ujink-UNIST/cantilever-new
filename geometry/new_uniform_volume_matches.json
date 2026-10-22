@@ -1,0 +1,116 @@
+{
+  "16_half": {
+    "modal": "cantilever16_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "modal_sha256": "4a16268dd66e18118543214754bb363885cb6d07760227333887a98603e69b99",
+    "uniform": "cantilever16_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "uniform_sha256": "8e1423c350e8204fab30f16d2d006ae373989c7d636e8cab443da2939caf09dc",
+    "cells": [
+      16,
+      5,
+      5
+    ],
+    "cell_size_mm": 5.0,
+    "node_bounds_mm": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        80.0,
+        25.0,
+        25.0
+      ]
+    ],
+    "radius_mm": 0.411729972,
+    "diameter_mm": 0.823459944,
+    "grid_mm": 0.125,
+    "offsets": [
+      0.389,
+      0.811,
+      0.137
+    ],
+    "modal_surface_volume_mm3": 10764.764745974691,
+    "uniform_surface_volume_mm3": 10764.477961947734,
+    "relative_volume_difference": -2.66409934378542e-05,
+    "modal_faces": 7819556,
+    "uniform_faces": 8251972,
+    "final_surface_checks": "one component; closed edge-manifold; zero self-intersecting faces"
+  },
+  "16_full": {
+    "modal": "cantilever16_mo_w0.50_dia1.0_sym_iface5_from_modal.3mf",
+    "modal_sha256": "5101ad59992f72d49518a49ffeccff0bfb40d6d4d801b3b934fb698a77eef742",
+    "uniform": "cantilever16_uniform5449_volume_matched_sym_iface5_from_modal.3mf",
+    "uniform_sha256": "4c83896086235a66f565679cec64dfea5ce215176a2737b739295ed8fe90a2c7",
+    "cells": [
+      16,
+      5,
+      5
+    ],
+    "cell_size_mm": 10.0,
+    "node_bounds_mm": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        160.0,
+        50.0,
+        50.0
+      ]
+    ],
+    "radius_mm": 0.832564067,
+    "diameter_mm": 1.665128134,
+    "grid_mm": 0.2,
+    "offsets": [
+      0.389,
+      0.811,
+      0.137
+    ],
+    "modal_surface_volume_mm3": 87937.78911844188,
+    "uniform_surface_volume_mm3": 87933.36601328102,
+    "relative_volume_difference": -5.029811648904481e-05,
+    "modal_faces": 12419652,
+    "uniform_faces": 12669188,
+    "final_surface_checks": "one component; closed edge-manifold; zero self-intersecting faces"
+  },
+  "24_half": {
+    "modal": "cantilever24_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "modal_sha256": "489a89f7fed9c41e0e61f79f8e3ac96915249d70aaf6d8624a49090171605d27",
+    "uniform": "cantilever24_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "uniform_sha256": "450fc047e587243d319896ccbd3cabe151e28e3d5051b61e16d3dd95778c83c0",
+    "cells": [
+      24,
+      5,
+      5
+    ],
+    "cell_size_mm": 5.0,
+    "node_bounds_mm": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        120.0,
+        25.0,
+        25.0
+      ]
+    ],
+    "radius_mm": 0.412720904,
+    "diameter_mm": 0.825441808,
+    "grid_mm": 0.125,
+    "offsets": [
+      0.389,
+      0.811,
+      0.137
+    ],
+    "modal_surface_volume_mm3": 16138.867170774705,
+    "uniform_surface_volume_mm3": 16140.260974946013,
+    "relative_volume_difference": 8.636319740151777e-05,
+    "modal_faces": 11122836,
+    "uniform_faces": 12301092,
+    "final_surface_checks": "one component; closed edge-manifold; zero self-intersecting faces"
+  }
+}
