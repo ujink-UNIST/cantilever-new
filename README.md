@@ -138,11 +138,11 @@ python .\test_match_uniform_3mf.py
 
 ## STEP 고정부를 결합한 출력용 STL 6개
 
-`geometry/Support.step`에는 두 개의 solid가 있습니다. 50 mm 베이스는 `16_full` 두 모델에, 25 mm 베이스는 `16_half/24_half` 네 모델에 사용했습니다. STEP의 배치를 그대로 유지합니다: 고정부 `x=-10..0`, 격자 시작면 `x=0`. 접합부의 실제 solid overlap을 확인했으며 별도 이동·반지름 변경은 하지 않았습니다.
+`geometry/Support.step`은 구멍을 작고 간단하게 변경한 최신 파일이며, SHA-256은 `c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69`입니다. 두 개의 solid가 있습니다. 50 mm 베이스는 `16_full` 두 모델에, 25 mm 베이스는 `16_half/24_half` 네 모델에 사용했습니다. STEP의 배치를 그대로 유지합니다: 고정부 `x=-10..0`, 격자 시작면 `x=0`. 접합부의 실제 solid overlap을 확인했으며 별도 이동·반지름 변경은 하지 않았습니다.
 
 STEP 고정부만 0.02 mm 공차로 tessellate한 뒤 signed-distance field로 변환하고, 격자 field와 union하여 하나의 STL을 생성합니다. 격자를 CAD로 변환하거나 tetra mesh를 생성하지 않습니다. 기존과 같은 격자 간격(큰 모델 0.2 mm, 작은 모델 0.125 mm)을 사용합니다.
 
-출력: `geometry/{modal,uniform}{16_full,16_half,24_half}_with_support.stl`. `v1.0` Release의 `symmetric_modal_uniform_6_with_support_stl.zip`에 STL 6개와 검증 보고서·미리보기를 포함했습니다.
+출력: `geometry/{modal,uniform}{16_full,16_half,24_half}_with_support.stl`. 최신 파일은 `v1.0` Release의 `symmetric_modal_uniform_6_with_support_small_holes_stl.zip`에 STL 6개와 검증 보고서·미리보기를 포함했습니다. 이전 구멍 형상의 `symmetric_modal_uniform_6_with_support_stl.zip`은 비교용으로 유지합니다.
 
 검증: STEP solid 유효성, 고정부 tessellation 부피 오차 0.2% 이내, 고정부 implicit 부피 오차 1% 이내, 접합부 양의 겹침, 최종 연결 표면 1개, boundary/non-manifold edge 0개, self-intersecting face 0개. 저장된 binary STL의 양의 signed volume과 원래 surface 부피 일치 및 SHA-256도 확인했습니다. 상세 값은 `geometry/supported_print_models.json`에 있습니다.
 
