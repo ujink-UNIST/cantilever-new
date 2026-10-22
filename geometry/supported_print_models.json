@@ -2,8 +2,10 @@
   "modal16_full": {
     "file": "modal16_full_with_support.stl",
     "source_3mf": "cantilever16_mo_w0.50_dia1.0_sym_iface5_from_modal.3mf",
+    "stl_signed_volume_mm3": 135366.34543008837,
+    "stl_sha256": "a8893c4c0afbd885f58eeaf185b0ded60257bdd66d40e363341bda03163998d1",
     "source_3mf_sha256": "5101ad59992f72d49518a49ffeccff0bfb40d6d4d801b3b934fb698a77eef742",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 50,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.2,
@@ -12,10 +14,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 39216.02701686032,
-    "support_surface_volume_mm3": 39220.76750154583,
+    "support_cad_volume_mm3": 48185.56989420441,
+    "support_surface_volume_mm3": 48196.95192610863,
     "sampled_overlap_volume_mm3": 757.3040000000002,
-    "combined_surface_volume_mm3": 126390.16100567818,
+    "combined_surface_volume_mm3": 135366.3454300853,
     "bounds_mm": [
       -10.0,
       160.6301727294922,
@@ -24,21 +26,21 @@
       -22.497638702392578,
       72.49732971191406
     ],
-    "triangles": 13415796,
-    "bytes": 670789884,
+    "triangles": 13347296,
+    "bytes": 667364884,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 126390.16100561988,
-    "stl_sha256": "63ff061459e880aa03dfd57ecc876532fe6764ed4f38ab29b96d87da8db75d56"
+    "self_intersecting_faces": 0
   },
   "uniform16_full": {
     "file": "uniform16_full_with_support.stl",
     "source_3mf": "cantilever16_uniform5449_volume_matched_sym_iface5_from_modal.3mf",
+    "stl_signed_volume_mm3": 135529.55027029148,
+    "stl_sha256": "d9abb98fd7e9b9ee42df87f8128d5d43c66c5c134825d3249143f56d7161c92c",
     "source_3mf_sha256": "4c83896086235a66f565679cec64dfea5ce215176a2737b739295ed8fe90a2c7",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 50,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.2,
@@ -47,10 +49,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 39216.02701686032,
-    "support_surface_volume_mm3": 39220.76750154583,
+    "support_cad_volume_mm3": 48185.56989420441,
+    "support_surface_volume_mm3": 48196.95192610863,
     "sampled_overlap_volume_mm3": 600.1520000000002,
-    "combined_surface_volume_mm3": 126553.36584579464,
+    "combined_surface_volume_mm3": 135529.55027019302,
     "bounds_mm": [
       -10.0,
       160.8321075439453,
@@ -59,21 +61,21 @@
       -22.497638702392578,
       72.49732971191406
     ],
-    "triangles": 13680368,
-    "bytes": 684018484,
+    "triangles": 13611868,
+    "bytes": 680593484,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 126553.36584582331,
-    "stl_sha256": "3d24cbc539f7719ad8de1b074d3e39969d9c6015fc548e980b023886ed0c4390"
+    "self_intersecting_faces": 0
   },
   "modal16_half": {
     "file": "modal16_half_with_support.stl",
     "source_3mf": "cantilever16_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "stl_signed_volume_mm3": 32685.803083303475,
+    "stl_sha256": "c19147113e208efdc0d69992acf3870a46f051dc3ebe298cac29d3bd43ecd5e6",
     "source_3mf_sha256": "4a16268dd66e18118543214754bb363885cb6d07760227333887a98603e69b99",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 25,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.125,
@@ -82,10 +84,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 19765.900910770037,
-    "support_surface_volume_mm3": 19731.18460582319,
+    "support_cad_volume_mm3": 22048.808357202543,
+    "support_surface_volume_mm3": 22015.311632361558,
     "sampled_overlap_volume_mm3": 90.611328125,
-    "combined_surface_volume_mm3": 30401.676056705568,
+    "combined_surface_volume_mm3": 32685.803083258048,
     "bounds_mm": [
       -10.0,
       80.3149185180664,
@@ -94,21 +96,21 @@
       -34.996131896972656,
       59.99612808227539
     ],
-    "triangles": 9198148,
-    "bytes": 459907484,
+    "triangles": 9045248,
+    "bytes": 452262484,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 30401.676056749264,
-    "stl_sha256": "703321bc6dbedb0cae7e6f377a09d4dde93013c4cd284e3eded8b2e19bc5ebbb"
+    "self_intersecting_faces": 0
   },
   "uniform16_half": {
     "file": "uniform16_half_with_support.stl",
     "source_3mf": "cantilever16_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "stl_signed_volume_mm3": 32707.30001294581,
+    "stl_sha256": "606ab9e6db61dc3d6688c8f1c87c4e915a1a4268784e1a1ed34bff9a163546c0",
     "source_3mf_sha256": "8e1423c350e8204fab30f16d2d006ae373989c7d636e8cab443da2939caf09dc",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 25,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.125,
@@ -117,10 +119,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 19765.900910770037,
-    "support_surface_volume_mm3": 19731.18460582319,
+    "support_cad_volume_mm3": 22048.808357202543,
+    "support_surface_volume_mm3": 22015.311632361558,
     "sampled_overlap_volume_mm3": 74.892578125,
-    "combined_surface_volume_mm3": 30423.172986412337,
+    "combined_surface_volume_mm3": 32707.300012956366,
     "bounds_mm": [
       -10.0,
       80.41136932373047,
@@ -129,21 +131,21 @@
       -34.996131896972656,
       59.99612808227539
     ],
-    "triangles": 9638580,
-    "bytes": 481929084,
+    "triangles": 9485680,
+    "bytes": 474284084,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 30423.172986393423,
-    "stl_sha256": "3c1162db87dfe3e49e46986200acd97accd385343c16b7cca826d0f4a9527e4a"
+    "self_intersecting_faces": 0
   },
   "modal24_half": {
     "file": "modal24_half_with_support.stl",
     "source_3mf": "cantilever24_mo_w0.50_dia1.0_sym_island_iface5_from_modal_s0.5.3mf",
+    "stl_signed_volume_mm3": 38061.01370930494,
+    "stl_sha256": "ec8b677121d6848cc1cd92b3d2ac6893f224db50e8aa22ddc33b56a4c1f33943",
     "source_3mf_sha256": "489a89f7fed9c41e0e61f79f8e3ac96915249d70aaf6d8624a49090171605d27",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 25,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.125,
@@ -152,10 +154,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 19765.900910770037,
-    "support_surface_volume_mm3": 19731.18460582319,
+    "support_cad_volume_mm3": 22048.808357202543,
+    "support_surface_volume_mm3": 22015.311632361558,
     "sampled_overlap_volume_mm3": 90.99609375,
-    "combined_surface_volume_mm3": 35776.886682717515,
+    "combined_surface_volume_mm3": 38061.01370927034,
     "bounds_mm": [
       -10.0,
       120.31002044677734,
@@ -164,21 +166,21 @@
       -34.996131896972656,
       59.99612808227539
     ],
-    "triangles": 12502776,
-    "bytes": 625138884,
+    "triangles": 12349876,
+    "bytes": 617493884,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 35776.88668275211,
-    "stl_sha256": "b691e349d5efb7aa62ef25e371d4d37ad1d80d315d4c67784b237b48473f82b3"
+    "self_intersecting_faces": 0
   },
   "uniform24_half": {
     "file": "uniform24_half_with_support.stl",
     "source_3mf": "cantilever24_uniform5449_volume_matched_sym_island_iface5_from_modal_s0.5.3mf",
+    "stl_signed_volume_mm3": 38082.72238415306,
+    "stl_sha256": "a17dc74445232eb7fa8384a135ecd496b8c6774e8af8c2b1c5b6f1ed50180b87",
     "source_3mf_sha256": "450fc047e587243d319896ccbd3cabe151e28e3d5051b61e16d3dd95778c83c0",
-    "support_step_sha256": "b60d36530089bded946b830e2aa9f9a378036a2b17139e47ed6ee83b2e656658",
+    "support_step_sha256": "c74dca52ed265a3f9d824bc9948dd116c1b2bdcc2606a95d67778d39b9cdeb69",
     "support_base_mm": 25,
     "support_transform": "identity; STEP x=-10..0, lattice root x=0; no radius changes",
     "grid_mm": 0.125,
@@ -187,10 +189,10 @@
       0.811,
       0.137
     ],
-    "support_cad_volume_mm3": 19765.900910770037,
-    "support_surface_volume_mm3": 19731.18460582319,
+    "support_cad_volume_mm3": 22048.808357202543,
+    "support_surface_volume_mm3": 22015.311632361558,
     "sampled_overlap_volume_mm3": 74.896484375,
-    "combined_surface_volume_mm3": 35798.59535749112,
+    "combined_surface_volume_mm3": 38082.72238403017,
     "bounds_mm": [
       -10.0,
       120.41236114501953,
@@ -199,14 +201,12 @@
       -34.996131896972656,
       59.99612808227539
     ],
-    "triangles": 13687700,
-    "bytes": 684385084,
+    "triangles": 13534800,
+    "bytes": 676740084,
     "unit": "mm (STL is unitless)",
     "connected_surfaces": 1,
     "boundary_edges": 0,
     "nonmanifold_edges": 0,
-    "self_intersecting_faces": 0,
-    "stl_signed_volume_mm3": 35798.59535760111,
-    "stl_sha256": "99b454e87adc0a5bb02a5bf1b774c8c0ef5ce55a64898fc841efdb86e559f545"
+    "self_intersecting_faces": 0
   }
 }
