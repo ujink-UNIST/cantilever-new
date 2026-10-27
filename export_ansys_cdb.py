@@ -6,14 +6,14 @@ from pathlib import Path
 import meshio
 import numpy as np
 
-from run import STEMS
+from run import STEMS, positive_size, size_suffix
 
 ROOT = Path(__file__).resolve().parent
 EDGE_ORDER = np.array(((0, 1), (1, 2), (2, 0), (0, 3), (1, 3), (2, 3)))
 
 
-def export(case: str) -> None:
-    stem = case
+def export(case: str, size: float = 1.0) -> None:
+    stem = case + size_suffix(size)
     source = ROOT / f"{stem}_volume.msh"
     output = ROOT / f"{stem}_ansys_tet10.cdb"
     mesh = meshio.read(source, file_format="gmsh")
@@ -68,8 +68,9 @@ def export(case: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Convert a cantilever tetra mesh to ANSYS SOLID187 CDB.")
     parser.add_argument("case", choices=STEMS)
+    parser.add_argument("--size", type=positive_size, default=1.0, help="Read/write the corresponding sized mesh/CDB files")
     args = parser.parse_args()
-    export(args.case)
+    export(args.case, args.size)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -37,6 +38,28 @@ for pair in ("16_full", "16_half", "24_half"):
     for kind in ("modal", "uniform"):
         SOURCES[f"{kind}{pair}"] = ROOT / "geometry" / MATCHED_PAIRS[pair][kind]
 STEMS += NEW_CASES
+
+
+def positive_size(value: str | float) -> float:
+    try:
+        size = float(value)
+    except (TypeError, ValueError) as error:
+        raise argparse.ArgumentTypeError("size must be a positive finite number") from error
+    if not math.isfinite(size) or size <= 0:
+        raise argparse.ArgumentTypeError("size must be a positive finite number")
+    return size
+
+
+def size_suffix(size: float) -> str:
+    size = positive_size(size)
+    if size == 1.0:
+        return ""
+    return "_size" + str(size).replace(".", "p").replace("-", "m").replace("+", "")
+
+
+def run_directory(size: float) -> Path:
+    suffix = size_suffix(size)
+    return ROOT / "runs" / suffix[1:] if suffix else ROOT / "runs"
 
 
 def stale(output: Path, *sources: Path) -> bool:
@@ -83,29 +106,34 @@ def main() -> None:
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe; auto-detected if omitted")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--cases", nargs="+", choices=STEMS, default=NEW_CASES, help="Models to run; defaults to the six new matched graphs")
+    parser.add_argument("--size", type=positive_size, default=1.0, help="CGAL length-criteria multiplier (default: 1; 0.5 refines without replacing baseline files)")
     args = parser.parse_args()
+    suffix = size_suffix(args.size)
 
     for stem in args.cases:
         source = ensure_surface(stem)
-        volume = ROOT / f"{stem}_volume.msh"
-        cdb = ROOT / f"{stem}_ansys_tet10.cdb"
-        mesh_inputs = (source, ROOT / "mesh_obj3.py") if source.suffix.lower() == ".3mf" else (source,)
+        volume = ROOT / f"{stem}{suffix}_volume.msh"
+        cdb = ROOT / f"{stem}{suffix}_ansys_tet10.cdb"
+        mesh_inputs = (source,)
+        # Adding a refinement option must not invalidate an existing baseline mesh.
+        if suffix and source.suffix.lower() == ".3mf":
+            mesh_inputs += (ROOT / "mesh_obj3.py",)
         if stem in NEW_CASES:
             mesh_inputs += (MATCH_REPORT,)
         if stale(volume, *mesh_inputs):
-            execute(sys.executable, "mesh_obj3.py", stem)
+            execute(sys.executable, "mesh_obj3.py", stem, "--size", str(args.size))
         else:
             print(f"Reusing {volume.name}")
         if stale(cdb, volume):
-            execute(sys.executable, "export_ansys_cdb.py", stem)
+            execute(sys.executable, "export_ansys_cdb.py", stem, "--size", str(args.size))
         else:
             print(f"Reusing {cdb.name}")
 
-    command = [sys.executable, "run_all_modal.py", "--np", str(args.np), "--cases", *args.cases]
+    command = [sys.executable, "run_all_modal.py", "--np", str(args.np), "--size", str(args.size), "--cases", *args.cases]
     if args.exe:
         command += ["--exe", str(args.exe.resolve())]
     execute(*command)
-    print(f"\nResults: {ROOT / 'runs' / 'free_free_modal_frequencies_all.csv'}")
+    print(f"\nResults: {run_directory(args.size) / 'free_free_modal_frequencies_all.csv'}")
 
 
 if __name__ == "__main__":
