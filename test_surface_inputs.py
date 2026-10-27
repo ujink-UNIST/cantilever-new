@@ -81,7 +81,7 @@ def check():
         finally:
             run.ROOT = saved_root; run.SOURCES['modal-8'] = saved_source
         assert tuple(reader.SCALES) == run.STEMS and tuple(reader.VOXELS) == run.STEMS
-        assert len(modal.CASES) == 18
+        assert len(modal.CASES) == 2 * len(run.STEMS)
         saved_runs = modal.RUNS
         try:
             modal.RUNS = root
@@ -96,7 +96,7 @@ def check():
                 assert 'NSEL,S,LOC,X' not in text and 'MODOPT,LANPCG,12' in text
         finally:
             modal.RUNS = saved_runs
-    print('PASS: STL/OBJ, voxel equivalence, invalid input, safe extraction, all 18 decks and branch boundary conditions')
+    print('PASS: STL/OBJ, voxel equivalence, invalid input, safe extraction, all decks and branch boundary conditions')
 
 
 if __name__ == '__main__':

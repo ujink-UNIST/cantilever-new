@@ -70,6 +70,49 @@ python run.py --exe "C:\\Program Files\\ANSYS Inc\\v252\\ansys\\bin\\winx64\\ANS
 
 ANSYS 기준 물성은 `E=1 MPa`, `ρ=1 tonne/mm³`이며 포아송비별로 해석합니다. 같은 포아송비의 실제 주파수는 `f = f_white × sqrt(E/ρ)`로 계산합니다. 경계조건은 `x ≤ 0`인 모든 노드의 `UX/UY/UZ=0`이며, 탄성 모드 `f1–f6`를 추출합니다.
 
+## 기존 결과를 보존하는 메시 크기 옵션
+
+```powershell
+# 기존 크기 및 파일명 (기본값 size=1)
+python .\run.py
+
+# 기존 결과를 덮어쓰지 않고 더 촘촘한 메시로 별도 해석
+python .\run.py --size 0.5
+
+# 지정한 모델만 별도 해석
+python .\run.py --size 0.5 --cases modal16_half uniform16_half
+```
+
+`--size`는 양의 유한한 배율이며, CGAL의 `max_cell_circumradius`, `max_radius_surface_delaunay_ball`, `max_facet_distance`에 함께 적용합니다. `0.5`는 세 길이 기준을 절반으로 줄입니다. 형상 반지름, implicit field 격자 간격, 재료값, 고정 조건은 바꾸지 않습니다.
+
+| 조건 | 16 full | 16 half / 24 half |
+|---|---:|---:|
+| 기본 최대 tetra 외접구 반지름 | 1.0 mm | 0.5 mm |
+| `--size 0.5` 최대 tetra 외접구 반지름 | 0.5 mm | 0.25 mm |
+| `--size 0.5` 표면 Delaunay ball 반지름 | 0.375 mm | 0.1875 mm |
+| `--size 0.5` 표면 근사 거리 | 0.05 mm | 0.025 mm |
+
+기본값 `1`의 mesh/CDB/작업명/결과 경로는 유지합니다. `--size 0.5`에서는 다음처럼 분리합니다.
+
+- 체적 메시: `modal16_full_size0p5_volume.msh`
+- TET10 CDB: `modal16_full_size0p5_ansys_tet10.cdb`
+- 입력 및 `.out/.rst`와 개별 주파수: `runs/size0p5/`
+- 고정 해석 요약: `runs/size0p5/fixed_xle0_modal_frequencies_all.csv`
+- Free-free 요약: `runs/size0p5/free_free_modal_frequencies_all.csv`
+
+같은 size를 다시 실행하면 해당 size의 완료된 결과를 재사용합니다. 크기별로 별도 작업 폴더를 사용하며, sized 입력은 대응하는 CDB의 절대 경로를 참조합니다. 따라서 기본 메시나 다른 size의 메시를 잘못 읽지 않습니다. 이번 옵션 추가에 따른 스크립트 수정 시각만으로 기존 기본 메시를 무효화하지는 않지만, 원본 형상 또는 부피 보정 기록이 바뀌면 기존과 같이 재생성 대상이 됩니다.
+
+메시/CDB/입력만 개별 생성할 때에도 동일한 옵션을 전달해야 합니다.
+
+```powershell
+python .\mesh_obj3.py modal16_half --size 0.5
+python .\export_ansys_cdb.py modal16_half --size 0.5
+python .\run_all_modal.py --size 0.5 --cases modal16_half --prepare-only
+python .\test_mesh_size.py
+```
+
+자동 테스트에서는 가짜 CGAL/MAPDL을 사용하여 기준 길이 배율, mesh/CDB 경로, 입력과 결과 분리, sized 결과 재사용 및 기존 결과의 내용·수정 시각 보존을 확인합니다. 실제 CGAL/ANSYS 세밀 메시 해석은 별도 실행해야 합니다. 요소 수와 메모리 요구량은 크게 증가할 수 있으며, field 해상도는 그대로이므로 이 옵션만으로 형상 이산화 오차까지 수렴했다고 볼 수는 없습니다.
+
 ## 3MF 직접 voxel 부피 검증
 
 3MF의 butt-cap beam과 node ball을 직접 raster union합니다. 중간 surface가 없어 watertight/self-intersection 문제에 의존하지 않습니다.

@@ -7,7 +7,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from run import STEMS, NEW_CASES
+from run import STEMS, NEW_CASES, positive_size, size_suffix, run_directory
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
@@ -49,8 +49,16 @@ def find_ansys(given: Path | None) -> Path | None:
     return None
 
 
-def render(meshcase: int, matcase: int, name: str) -> Path:
+def render(meshcase: int, matcase: int, name: str, size: float = 1.0) -> Path:
     text = TEMPLATE.read_text(encoding="utf-8")
+    suffix = size_suffix(size)
+    if suffix:
+        for stem in STEMS:
+            marker = f"/INPUT,../{stem}_ansys_tet10,cdb"
+            cdb_stem = (ROOT / f"{stem}{suffix}_ansys_tet10").as_posix()
+            if text.count(marker) != 1:
+                raise RuntimeError(f"Missing or repeated CDB template marker: {marker}")
+            text = text.replace(marker, f"/INPUT,'{cdb_stem}',cdb")
     replacements = {
         "/FILNAME,fixed_xle0_modal,1": f"/FILNAME,{name},1",
         "\nMESHCASE=1\n": f"\nMESHCASE={meshcase}\n",
@@ -128,22 +136,26 @@ def run_mapdl(command: list[str], job: str) -> int:
 
 
 def main() -> None:
+    global RUNS
     parser = argparse.ArgumentParser(description="Run selected x<=0 fixed models using two whitened material solves.")
     parser.add_argument("--exe", type=Path, help="Path to ANSYSxxx.exe")
     parser.add_argument("--np", type=int, default=4, help="MAPDL CPU count (default: 4)")
     parser.add_argument("--prepare-only", action="store_true", help="Generate input decks without MAPDL")
     parser.add_argument("--cases", nargs="+", choices=STEMS, default=NEW_CASES, help="Models to run; defaults to the six new matched graphs")
+    parser.add_argument("--size", type=positive_size, default=1.0, help="Use the sized CDBs and isolate results under runs/size.../")
     args = parser.parse_args()
-    RUNS.mkdir(exist_ok=True)
+    suffix = size_suffix(args.size)
+    RUNS = run_directory(args.size)
+    RUNS.mkdir(parents=True, exist_ok=True)
 
     selected = [case for case in CASES if STEMS[case[0] - 1] in args.cases]
-    inputs = [(case, render(*case[:3])) for case in selected]
+    inputs = [(case, render(*case[:3], size=args.size)) for case in selected]
     if args.prepare_only:
         print("Generated:", *(path.name for _, path in inputs), sep="\n  ")
         return
 
     for stem in args.cases:
-        cdb = ROOT / f"{stem}_ansys_tet10.cdb"
+        cdb = ROOT / f"{stem}{suffix}_ansys_tet10.cdb"
         if not cdb.is_file():
             raise FileNotFoundError(cdb)
 
@@ -157,7 +169,7 @@ def main() -> None:
         frequency_path = RUNS / f"{name}_frequencies.csv"
         result_path = RUNS / f"{name}.rst"
         lock_path = RUNS / f"{name}.lock"
-        cdb_path = ROOT / f"{STEMS[meshcase - 1]}_ansys_tet10.cdb"
+        cdb_path = ROOT / f"{STEMS[meshcase - 1]}{suffix}_ansys_tet10.cdb"
         if lock_path.exists():
             raise RuntimeError(f"{lock_path.name} exists; stop MAPDL and remove the stale lock")
         result_is_current = (

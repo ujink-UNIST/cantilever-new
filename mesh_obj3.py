@@ -10,7 +10,7 @@ from zipfile import ZipFile
 
 import numpy as np
 
-from run import SOURCES, MATCHED_PAIRS, NEW_CASES
+from run import SOURCES, MATCHED_PAIRS, NEW_CASES, positive_size, size_suffix
 
 ROOT = Path(__file__).resolve().parent
 SCALES = {
@@ -342,9 +342,10 @@ def interpolate_field(field: np.ndarray, point, origin, spacing: float) -> float
     return float(((1 - y) * c00 + y * c10) * (1 - z) + ((1 - y) * c01 + y * c11) * z)
 
 
-def mesh_implicit_field(field: np.ndarray, voxel: float, scale: float):
+def mesh_implicit_field(field: np.ndarray, voxel: float, scale: float, size: float = 1.0):
     import pygalmesh
 
+    scale *= positive_size(size)
     # Center CGAL's bounding sphere on the grid rather than on the global origin.
     origin = tuple(-(np.array(field.shape) - 1) * voxel / 2)
 
@@ -369,9 +370,10 @@ def mesh_implicit_field(field: np.ndarray, voxel: float, scale: float):
     ), np.array(origin)
 
 
-def mesh_case(case: str, voxel_only: bool = False) -> None:
+def mesh_case(case: str, voxel_only: bool = False, size: float = 1.0) -> None:
+    size = positive_size(size)
     source = SOURCES[case]
-    output = ROOT / f"{case}_volume.msh"
+    output = ROOT / f"{case}{size_suffix(size)}_volume.msh"
     scale, voxel = SCALES[case], VOXELS[case]
     offsets = GRAPH_OFFSETS.get(case, OFFSETS)
     if source.suffix.lower() == ".3mf":
@@ -386,17 +388,17 @@ def mesh_case(case: str, voxel_only: bool = False) -> None:
 
     if case in NEW_CASES:
         # Use the continuous field used for volume matching/STL, not its 0/1 mask.
-        mesh, centered_origin = mesh_implicit_field(solid, voxel, scale)
+        mesh, centered_origin = mesh_implicit_field(solid, voxel, scale, size)
         mesh.points += lower + offsets * voxel - centered_origin
     else:
         import pygalmesh  # Needed only for tetrahedralization, not voxel validation.
         mesh = pygalmesh.generate_from_array(
             np.pad(solid, PAD), (voxel,) * 3,
             min_facet_angle=25,
-            max_radius_surface_delaunay_ball=0.75 * scale,
-            max_facet_distance=0.1 * scale,
+            max_radius_surface_delaunay_ball=0.75 * scale * size,
+            max_facet_distance=0.1 * scale * size,
             max_circumradius_edge_ratio=3,
-            max_cell_circumradius=1.0 * scale,
+            max_cell_circumradius=1.0 * scale * size,
             verbose=True, seed=1,
         )
         mesh.points += lower + (offsets - PAD) * voxel
@@ -421,8 +423,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Voxelize and tetrahedralize a 3MF beam graph or binary STL.")
     parser.add_argument("case", choices=SOURCES)
     parser.add_argument("--voxel-only", action="store_true", help="validate voxel volume without CGAL")
+    parser.add_argument("--size", type=positive_size, default=1.0, help="CGAL length-criteria multiplier; field grid stays unchanged")
     args = parser.parse_args()
-    mesh_case(args.case, args.voxel_only)
+    mesh_case(args.case, args.voxel_only, args.size)
 
 
 if __name__ == "__main__":
